@@ -2,15 +2,17 @@
 import { Command, InvalidArgumentError } from "commander";
 import { pathToFileURL } from "node:url";
 import process from "node:process";
+import { traceMatrix } from "./core/matrix.js";
 import { findGitRoot, InputError } from "./core/paths.js";
-import { CLAUDE_PROFILE, traceClaude } from "./profiles/claude.js";
-import { CODEX_PROFILE, traceCodex } from "./profiles/codex.js";
-import { COPILOT_PROFILE, traceCopilot } from "./profiles/copilot.js";
-import { GEMINI_PROFILE, traceGemini } from "./profiles/gemini.js";
+import type { ProfileTraceOptions } from "./core/types.js";
+import {
+  PROFILE_REGISTRY,
+  traceProfile,
+} from "./profiles/registry.js";
+import { renderMatrix } from "./render/matrix.js";
 import { renderText } from "./render/text.js";
 
-interface ExplainOptions {
-  client: string;
+interface CommonOptions {
   root?: string;
   cwd: string;
   format: "text" | "json";
@@ -19,11 +21,17 @@ interface ExplainOptions {
   claudeHome?: string;
   geminiHome?: string;
   copilotHome?: string;
+}
+
+interface ExplainOptions extends CommonOptions {
+  client: string;
   fallback?: string[];
   exclude?: string[];
   contextFile?: string[];
   maxBytes: number;
 }
+
+type MatrixOptions = CommonOptions;
 
 function parseNonNegativeInteger(value: string): number {
   const parsed = Number(value);
@@ -35,6 +43,37 @@ function parseNonNegativeInteger(value: string): number {
 
 function collect(value: string, previous: string[]): string[] {
   return [...previous, value];
+}
+
+function validateFormat(format: string): asserts format is "text" | "json" {
+  if (format !== "text" && format !== "json") {
+    throw new InputError(`unsupported format: ${format} (available: text, json)`);
+  }
+}
+
+function profileTraceOptions(
+  target: string,
+  root: string,
+  options: CommonOptions & Partial<ExplainOptions>,
+): ProfileTraceOptions {
+  return {
+    root,
+    cwd: options.cwd,
+    target,
+    includeUser: options.includeUser,
+    ...(options.codexHome === undefined ? {} : { codexHome: options.codexHome }),
+    ...(options.claudeHome === undefined ? {} : { claudeHome: options.claudeHome }),
+    ...(options.geminiHome === undefined ? {} : { geminiHome: options.geminiHome }),
+    ...(options.copilotHome === undefined ? {} : { copilotHome: options.copilotHome }),
+    ...(options.fallback === undefined
+      ? {}
+      : { fallbackFilenames: options.fallback }),
+    ...(options.exclude === undefined ? {} : { excludes: options.exclude }),
+    ...(options.contextFile === undefined
+      ? {}
+      : { contextFilenames: options.contextFile }),
+    ...(options.maxBytes === undefined ? {} : { maxBytes: options.maxBytes }),
+  };
 }
 
 export function buildProgram(): Command {
@@ -67,69 +106,12 @@ export function buildProgram(): Command {
     )
     .option("--max-bytes <bytes>", "Codex project instruction byte limit", parseNonNegativeInteger, 32768)
     .action(async (target: string, rawOptions: ExplainOptions) => {
-      if (
-        rawOptions.client !== "codex" &&
-        rawOptions.client !== "claude" &&
-        rawOptions.client !== "gemini" &&
-        rawOptions.client !== "copilot"
-      ) {
-        throw new InputError(
-          `profile is not implemented yet: ${rawOptions.client} (available: codex, claude, gemini, copilot)`,
-        );
-      }
-      if (rawOptions.format !== "text" && rawOptions.format !== "json") {
-        throw new InputError(`unsupported format: ${rawOptions.format} (available: text, json)`);
-      }
-
+      validateFormat(rawOptions.format);
       const root = rawOptions.root ?? (await findGitRoot(rawOptions.cwd));
-      let trace;
-      if (rawOptions.client === "codex") {
-        trace = await traceCodex({
-          root,
-          cwd: rawOptions.cwd,
-          target,
-          includeUser: rawOptions.includeUser,
-          maxBytes: rawOptions.maxBytes,
-          ...(rawOptions.codexHome === undefined ? {} : { codexHome: rawOptions.codexHome }),
-          ...(rawOptions.fallback === undefined
-            ? {}
-            : { fallbackFilenames: rawOptions.fallback }),
-        });
-      } else if (rawOptions.client === "claude") {
-        trace = await traceClaude({
-          root,
-          cwd: rawOptions.cwd,
-          target,
-          includeUser: rawOptions.includeUser,
-          ...(rawOptions.claudeHome === undefined
-            ? {}
-            : { claudeHome: rawOptions.claudeHome }),
-          ...(rawOptions.exclude === undefined ? {} : { excludes: rawOptions.exclude }),
-        });
-      } else if (rawOptions.client === "gemini") {
-        trace = await traceGemini({
-          root,
-          cwd: rawOptions.cwd,
-          target,
-          includeUser: rawOptions.includeUser,
-          ...(rawOptions.geminiHome === undefined
-            ? {}
-            : { geminiHome: rawOptions.geminiHome }),
-          ...(rawOptions.contextFile === undefined
-            ? {}
-            : { contextFilenames: rawOptions.contextFile }),
-        });
-      } else {
-        trace = await traceCopilot({
-          root,
-          cwd: rawOptions.cwd,
-          target,
-          includeUser: rawOptions.includeUser,
-          ...(rawOptions.copilotHome === undefined
-            ? {}
-            : { copilotHome: rawOptions.copilotHome }),
-        });
-      }
+      const trace = await traceProfile(
+        rawOptions.client,
+        profileTraceOptions(target, root, rawOptions),
+      );
       process.stdout.write(
         rawOptions.format === "json" ? `${JSON.stringify(trace, null, 2)}\n` : `${renderText(trace)}\n`,
       );
@@ -139,15 +121,38 @@ export function buildProgram(): Command {
     });
 
   program
+    .command("matrix")
+    .description("Compare instruction discovery across every implemented client profile.")
+    .argument("<target>", "target file or directory, relative to --cwd")
+    .option("--root <path>", "project root; defaults to the nearest Git root")
+    .option("--cwd <path>", "simulated client launch directory", process.cwd())
+    .option("--format <format>", "output format: text or json", "text")
+    .option("--include-user", "include user-level instruction files", false)
+    .option("--codex-home <path>", "Codex home used with --include-user")
+    .option("--claude-home <path>", "Claude home used with --include-user")
+    .option("--gemini-home <path>", "Gemini home used with --include-user")
+    .option("--copilot-home <path>", "Copilot home used with --include-user")
+    .action(async (target: string, rawOptions: MatrixOptions) => {
+      validateFormat(rawOptions.format);
+      const root = rawOptions.root ?? (await findGitRoot(rawOptions.cwd));
+      const matrix = await traceMatrix(
+        profileTraceOptions(target, root, rawOptions),
+      );
+      process.stdout.write(
+        rawOptions.format === "json"
+          ? `${JSON.stringify(matrix, null, 2)}\n`
+          : `${renderMatrix(matrix)}\n`,
+      );
+      if (matrix.summary.warningCount > 0) {
+        process.exitCode = 1;
+      }
+    });
+
+  program
     .command("profiles")
     .description("List implemented client profiles and their primary sources.")
     .action(() => {
-      for (const profile of [
-        CODEX_PROFILE,
-        CLAUDE_PROFILE,
-        GEMINI_PROFILE,
-        COPILOT_PROFILE,
-      ]) {
+      for (const { metadata: profile } of PROFILE_REGISTRY) {
         process.stdout.write(
           `${profile.id}\t${profile.status}\tverified ${profile.verifiedOn}\t${profile.sources[0]?.url}\n`,
         );

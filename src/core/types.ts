@@ -100,3 +100,34 @@ export interface CopilotTraceOptions {
   includeUser?: boolean;
   copilotHome?: string;
 }
+
+export interface ProfileTraceOptions {
+  root: string;
+  cwd: string;
+  target: string;
+  includeUser?: boolean;
+  codexHome?: string;
+  claudeHome?: string;
+  geminiHome?: string;
+  copilotHome?: string;
+  fallbackFilenames?: string[];
+  excludes?: string[];
+  contextFilenames?: string[];
+  maxBytes?: number;
+}
+
+export interface MatrixSummary {
+  profileCount: number;
+  includedFiles: number;
+  includedBytes: number;
+  approximateTokens: number;
+  warningCount: number;
+}
+
+export interface MatrixResult {
+  schemaVersion: 1;
+  toolVersion: string;
+  inputs: TraceInput;
+  traces: TraceResult[];
+  summary: MatrixSummary;
+}
