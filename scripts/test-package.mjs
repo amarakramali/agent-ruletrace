@@ -6,6 +6,7 @@ import {
   mkdtemp,
   readFile,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import os from "node:os";
@@ -199,6 +200,17 @@ try {
   ];
 
   assert.equal(runCli(["--version"]).stdout.trim(), "0.1.0");
+  if (process.platform !== "win32") {
+    const symlinkedCliPath = path.join(temporaryRoot, "ruletrace-entry.mjs");
+    await symlink(cliPath, symlinkedCliPath);
+    assert.equal(
+      run(process.execPath, [symlinkedCliPath, "--version"], {
+        cwd: fixtureRoot,
+        env: offlineEnvironment,
+      }).stdout.trim(),
+      "0.1.0",
+    );
+  }
   assert.deepEqual(
     runCli(["profiles"])
       .stdout.trim()

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import { Command, InvalidArgumentError } from "commander";
-import { pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { traceMatrix } from "./core/matrix.js";
 import { findGitRoot, InputError } from "./core/paths.js";
 import type { ProfileTraceOptions } from "./core/types.js";
@@ -226,7 +228,16 @@ export async function main(argv = process.argv): Promise<void> {
   }
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
-if (import.meta.url === invokedPath) {
+function canonicalEntrypoint(candidate: string): string {
+  try {
+    return realpathSync(candidate);
+  } catch {
+    return path.resolve(candidate);
+  }
+}
+
+const modulePath = canonicalEntrypoint(fileURLToPath(import.meta.url));
+const invokedPath = process.argv[1] ? canonicalEntrypoint(process.argv[1]) : "";
+if (modulePath === invokedPath) {
   await main();
 }
