@@ -20,7 +20,7 @@ resolving imports and globs, and remembering host-specific precedence.
 Agent RuleTrace turns that work into one deterministic command:
 
 ```bash
-npx agent-ruletrace explain src/api/users.ts --client claude --cwd .
+npx --yes --package=https://github.com/amarakramali/agent-ruletrace/releases/download/v0.1.0/agent-ruletrace-0.1.0.tgz -- ruletrace explain src/api/users.ts --client claude --cwd .
 ```
 
 Every decision includes the file, status, load phase, reason, byte footprint,
@@ -47,13 +47,13 @@ Requires a supported Node.js LTS release: Node 22 or newer.
 Run without installing:
 
 ```bash
-npx agent-ruletrace --help
+npx --yes --package=https://github.com/amarakramali/agent-ruletrace/releases/download/v0.1.0/agent-ruletrace-0.1.0.tgz -- ruletrace --help
 ```
 
 Or install globally:
 
 ```bash
-npm install --global agent-ruletrace
+npm install --global https://github.com/amarakramali/agent-ruletrace/releases/download/v0.1.0/agent-ruletrace-0.1.0.tgz
 ruletrace --help
 ```
 
@@ -201,6 +201,8 @@ failure behavior, test strategy, and release gates are documented in
   differ.
 - Token counts are an explicit byte-based approximation, not provider-specific
   tokenizer results.
+- The initial release is distributed as a GitHub tarball; it is not yet
+  published to the npm registry.
 - Profile behavior can change upstream; each profile exposes its source URLs and
   last verification date.
 - Windows, macOS, and Linux are verified in CI on the supported Node 22 and Node

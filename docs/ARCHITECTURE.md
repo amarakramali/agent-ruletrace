@@ -24,7 +24,7 @@ question.
 Within two minutes, a developer can run:
 
 ```bash
-npx agent-ruletrace explain src/api/users.ts --client claude --cwd .
+npx --yes --package=https://github.com/amarakramali/agent-ruletrace/releases/download/v0.1.0/agent-ruletrace-0.1.0.tgz -- ruletrace explain src/api/users.ts --client claude --cwd .
 ```
 
 and see:
@@ -40,7 +40,7 @@ and see:
 The matrix command shows the same target across all supported clients:
 
 ```bash
-npx agent-ruletrace matrix src/api/users.ts --cwd .
+npx --yes --package=https://github.com/amarakramali/agent-ruletrace/releases/download/v0.1.0/agent-ruletrace-0.1.0.tgz -- ruletrace matrix src/api/users.ts --cwd .
 ```
 
 ## MVP scope
@@ -310,8 +310,8 @@ debug output). Differences block release or must be labeled host-dependent.
 
 - Package: `agent-ruletrace` (confirmed unclaimed on npm on 2026-07-29).
 - Binary: `ruletrace`.
-- Install-free quickstart: `npx agent-ruletrace ...`.
-- Optional global install: `npm install --global agent-ruletrace`.
+- Install-free quickstart uses `npx --package=<GitHub release tarball>`.
+- Optional global install uses the same GitHub release tarball.
 - `npm pack` is the release artifact; the package contains the bundle, license,
   README, and profile-source metadata only.
 
