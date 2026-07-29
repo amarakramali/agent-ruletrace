@@ -5,8 +5,8 @@
 - State: `BUILDING`
 - State updated: 2026-07-29
 - Opportunity score: 86/100
-- Previous state: `BUILDING` (Claude Code profile)
-- Next state: `BUILDING` (GitHub Copilot profile)
+- Previous state: `BUILDING` (Gemini CLI profile)
+- Next state: `BUILDING` (matrix command and profile registry)
 
 ## State history
 
@@ -19,6 +19,7 @@
 | 2026-07-29 | `BUILDING` | The executable CLI foundation, normalized trace model, safe path boundary, text/JSON renderers, and fixture-tested Codex profile are implemented. |
 | 2026-07-29 | `BUILDING` | The Claude Code profile now explains launch-time and lazy instruction discovery, path-scoped rules, merged exclusions, imports, cycles, depth limits, user scope, and parse failures. |
 | 2026-07-29 | `BUILDING` | The Gemini CLI profile now explains effective context filenames, global/workspace/JIT discovery, imports, cycles, depth limits, settings precedence, security boundaries, and duplicate physical sources. |
+| 2026-07-29 | `BUILDING` | The GitHub Copilot CLI profile now explains user, repository-wide, path-specific, and agent instructions; root/cwd/target discovery; applyTo matching; documented content deduplication; and unspecified general precedence. |
 
 ## Current-cycle rule
 

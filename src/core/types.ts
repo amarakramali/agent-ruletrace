@@ -92,3 +92,11 @@ export interface GeminiTraceOptions {
   geminiHome?: string;
   contextFilenames?: string[];
 }
+
+export interface CopilotTraceOptions {
+  root: string;
+  cwd: string;
+  target: string;
+  includeUser?: boolean;
+  copilotHome?: string;
+}

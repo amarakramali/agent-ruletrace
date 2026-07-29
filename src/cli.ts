@@ -5,6 +5,7 @@ import process from "node:process";
 import { findGitRoot, InputError } from "./core/paths.js";
 import { CLAUDE_PROFILE, traceClaude } from "./profiles/claude.js";
 import { CODEX_PROFILE, traceCodex } from "./profiles/codex.js";
+import { COPILOT_PROFILE, traceCopilot } from "./profiles/copilot.js";
 import { GEMINI_PROFILE, traceGemini } from "./profiles/gemini.js";
 import { renderText } from "./render/text.js";
 
@@ -17,6 +18,7 @@ interface ExplainOptions {
   codexHome?: string;
   claudeHome?: string;
   geminiHome?: string;
+  copilotHome?: string;
   fallback?: string[];
   exclude?: string[];
   contextFile?: string[];
@@ -46,7 +48,7 @@ export function buildProgram(): Command {
     .command("explain")
     .description("Trace instruction discovery for one client and target path.")
     .argument("<target>", "target file or directory, relative to --cwd")
-    .requiredOption("--client <client>", "client profile: codex, claude, or gemini")
+    .requiredOption("--client <client>", "client profile: codex, claude, gemini, or copilot")
     .option("--root <path>", "project root; defaults to the nearest Git root")
     .option("--cwd <path>", "simulated client launch directory", process.cwd())
     .option("--format <format>", "output format: text or json", "text")
@@ -54,6 +56,7 @@ export function buildProgram(): Command {
     .option("--codex-home <path>", "Codex home used with --include-user")
     .option("--claude-home <path>", "Claude home used with --include-user")
     .option("--gemini-home <path>", "Gemini home used with --include-user")
+    .option("--copilot-home <path>", "Copilot home used with --include-user")
     .option("--fallback <filename>", "Codex fallback filename; repeatable", collect, [])
     .option("--exclude <glob>", "additional Claude exclusion glob; repeatable", collect, [])
     .option(
@@ -67,10 +70,11 @@ export function buildProgram(): Command {
       if (
         rawOptions.client !== "codex" &&
         rawOptions.client !== "claude" &&
-        rawOptions.client !== "gemini"
+        rawOptions.client !== "gemini" &&
+        rawOptions.client !== "copilot"
       ) {
         throw new InputError(
-          `profile is not implemented yet: ${rawOptions.client} (available: codex, claude, gemini)`,
+          `profile is not implemented yet: ${rawOptions.client} (available: codex, claude, gemini, copilot)`,
         );
       }
       if (rawOptions.format !== "text" && rawOptions.format !== "json") {
@@ -102,7 +106,7 @@ export function buildProgram(): Command {
             : { claudeHome: rawOptions.claudeHome }),
           ...(rawOptions.exclude === undefined ? {} : { excludes: rawOptions.exclude }),
         });
-      } else {
+      } else if (rawOptions.client === "gemini") {
         trace = await traceGemini({
           root,
           cwd: rawOptions.cwd,
@@ -114,6 +118,16 @@ export function buildProgram(): Command {
           ...(rawOptions.contextFile === undefined
             ? {}
             : { contextFilenames: rawOptions.contextFile }),
+        });
+      } else {
+        trace = await traceCopilot({
+          root,
+          cwd: rawOptions.cwd,
+          target,
+          includeUser: rawOptions.includeUser,
+          ...(rawOptions.copilotHome === undefined
+            ? {}
+            : { copilotHome: rawOptions.copilotHome }),
         });
       }
       process.stdout.write(
@@ -128,7 +142,12 @@ export function buildProgram(): Command {
     .command("profiles")
     .description("List implemented client profiles and their primary sources.")
     .action(() => {
-      for (const profile of [CODEX_PROFILE, CLAUDE_PROFILE, GEMINI_PROFILE]) {
+      for (const profile of [
+        CODEX_PROFILE,
+        CLAUDE_PROFILE,
+        GEMINI_PROFILE,
+        COPILOT_PROFILE,
+      ]) {
         process.stdout.write(
           `${profile.id}\t${profile.status}\tverified ${profile.verifiedOn}\t${profile.sources[0]?.url}\n`,
         );
