@@ -359,9 +359,9 @@ Suggested topics:
 
 The project may advance:
 
-- to `IN_DEVELOPMENT` after this architecture is committed;
+- to `BUILDING` after this architecture is committed;
 - to `TESTED` only after all automated core/profile fixtures pass;
 - to `DOCUMENTED` only after the demo and clean-install README check pass;
 - to `PUBLISHED` only after the public repository exists and CI is green;
-- to `RELEASED` only after the real `v0.1.0` GitHub Release is available.
-
+- to `RELEASING` only after the public repository exists and CI is green;
+- to `CLOSED` only after the real `v0.1.0` GitHub Release is available.

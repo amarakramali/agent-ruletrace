@@ -1,0 +1,45 @@
+{
+  "name": "agent-ruletrace",
+  "version": "0.1.0",
+  "description": "Explain which instruction files a coding agent loads for a target path, and why.",
+  "type": "module",
+  "bin": {
+    "ruletrace": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --dts --clean",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "coding-agents",
+    "agents-md",
+    "codex",
+    "developer-tools",
+    "cli"
+  ],
+  "author": "Amar Akram Ali",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  }
+}
