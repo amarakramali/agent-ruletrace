@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts --clean",
+    "demo": "npm run build && node scripts/generate-demo.mjs",
     "test": "vitest run",
     "test:package": "node scripts/test-package.mjs",
     "typecheck": "tsc --noEmit",
@@ -21,12 +22,24 @@
   "keywords": [
     "coding-agents",
     "agents-md",
+    "claude-code",
+    "gemini-cli",
+    "github-copilot",
     "codex",
+    "context-engineering",
     "developer-tools",
     "cli"
   ],
   "author": "Amar Akram Ali",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amarakramali/agent-ruletrace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amarakramali/agent-ruletrace/issues"
+  },
+  "homepage": "https://github.com/amarakramali/agent-ruletrace#readme",
   "engines": {
     "node": ">=20"
   },

@@ -5,8 +5,8 @@
 - State: `DOCUMENTING`
 - State updated: 2026-07-29
 - Opportunity score: 86/100
-- Previous state: `TESTING` (end-to-end, clean-install, and security checks)
-- Next state: `DOCUMENTING` (README, profile sources, demo, and community files)
+- Previous state: `DOCUMENTING` (public README, executable example, license, and generated demo)
+- Next state: `DOCUMENTING` (profile sources, changelog, community files, and CI)
 
 ## State history
 
@@ -22,6 +22,7 @@
 | 2026-07-29 | `BUILDING` | The GitHub Copilot CLI profile now explains user, repository-wide, path-specific, and agent instructions; root/cwd/target discovery; applyTo matching; documented content deduplication; and unspecified general precedence. |
 | 2026-07-29 | `TESTING` | The four-profile registry and matrix command complete the MVP implementation with stable text/JSON comparison, aggregate warnings, shared CLI dispatch, and fixture-backed behavior. |
 | 2026-07-29 | `DOCUMENTING` | Unit/profile tests plus a real tarball clean-install test now verify all commands, stable JSON, offline execution, safe package contents, and exit codes 0/1/2 against a mixed-agent fixture. |
+| 2026-07-29 | `DOCUMENTING` | The public README, MIT license, executable mixed-agent example, and reproducible SVG terminal demo now explain and visibly prove the primary use case. |
 
 ## Current-cycle rule
 

@@ -20,8 +20,7 @@ const repositoryRoot = path.resolve(
 );
 const fixtureSource = path.join(
   repositoryRoot,
-  "tests",
-  "fixtures",
+  "examples",
   "mixed-agent-repo",
 );
 const npmCliPath = process.env.npm_execpath;
@@ -72,6 +71,8 @@ function assertSafeTarball(files) {
   assert(paths.includes("dist/cli.js"), "tarball must contain the executable bundle");
   assert(paths.includes("dist/cli.d.ts"), "tarball must contain declarations");
   assert(paths.includes("package.json"), "tarball must contain package metadata");
+  assert(paths.includes("README.md"), "tarball must contain the README");
+  assert(paths.includes("LICENSE"), "tarball must contain the license");
 
   const forbidden = paths.filter(
     (file) =>

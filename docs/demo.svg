@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="538" viewBox="0 0 1280 538" role="img" aria-labelledby="title description">
+  <title id="title">Agent RuleTrace profile matrix demo</title>
+  <desc id="description">Terminal output comparing effective instruction files for Codex, Claude Code, Gemini CLI, and GitHub Copilot CLI.</desc>
+  <rect width="1280" height="538" rx="12" fill="#0d1117"/>
+  <rect width="1280" height="42" rx="12" fill="#161b22"/>
+  <rect y="30" width="1280" height="12" fill="#161b22"/>
+  <circle cx="24" cy="21" r="6" fill="#ff7b72"/>
+  <circle cx="44" cy="21" r="6" fill="#d29922"/>
+  <circle cx="64" cy="21" r="6" fill="#3fb950"/>
+  <text x="640" y="26" text-anchor="middle" fill="#8b949e" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">agent-ruletrace · mixed-agent-repo</text>
+  <g xml:space="preserve" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">
+  <text x="28" y="70" fill="#7ee787" style="white-space:pre">$ ruletrace matrix src/api/users.ts --cwd .</text>
+  <text x="28" y="92" fill="#c9d1d9" style="white-space:pre"></text>
+  <text x="28" y="114" fill="#c9d1d9" style="white-space:pre">Agent RuleTrace · profile matrix</text>
+  <text x="28" y="136" fill="#c9d1d9" style="white-space:pre">Root:   ./examples/mixed-agent-repo</text>
+  <text x="28" y="158" fill="#c9d1d9" style="white-space:pre">Cwd:    ./examples/mixed-agent-repo</text>
+  <text x="28" y="180" fill="#c9d1d9" style="white-space:pre">Target: ./examples/mixed-agent-repo/src/api/users.ts</text>
+  <text x="28" y="202" fill="#c9d1d9" style="white-space:pre"></text>
+  <text x="28" y="224" fill="#79c0ff" style="white-space:pre">PROFILE                   FILES   BYTES ~TOKENS    WARN</text>
+  <text x="28" y="246" fill="#c9d1d9" style="white-space:pre">OpenAI Codex                  1      83      21       0</text>
+  <text x="28" y="268" fill="#c9d1d9" style="white-space:pre">Anthropic Claude Code         2     164      41       0</text>
+  <text x="28" y="290" fill="#c9d1d9" style="white-space:pre">Google Gemini CLI             1      72      18       0</text>
+  <text x="28" y="312" fill="#c9d1d9" style="white-space:pre">GitHub Copilot CLI            5     370      93       0</text>
+  <text x="28" y="334" fill="#c9d1d9" style="white-space:pre"></text>
+  <text x="28" y="356" fill="#79c0ff" style="white-space:pre">Loaded instruction paths</text>
+  <text x="28" y="378" fill="#c9d1d9" style="white-space:pre">codex    AGENTS.md</text>
+  <text x="28" y="400" fill="#c9d1d9" style="white-space:pre">claude   CLAUDE.md, .claude/rules/typescript.md</text>
+  <text x="28" y="422" fill="#c9d1d9" style="white-space:pre">gemini   GEMINI.md</text>
+  <text x="28" y="444" fill="#c9d1d9" style="white-space:pre">copilot  .github/copilot-instructions.md, AGENTS.md, CLAUDE.md, GEMINI.md, .github/instructions/typescript.instructions.md</text>
+  <text x="28" y="466" fill="#c9d1d9" style="white-space:pre"></text>
+  <text x="28" y="488" fill="#c9d1d9" style="white-space:pre">4 profile(s), 9 file(s), 689 bytes, ~173 tokens</text>
+  </g>
+</svg>
