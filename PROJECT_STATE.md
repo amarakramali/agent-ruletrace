@@ -2,13 +2,13 @@
 
 - Project: Agent RuleTrace
 - Repository slug: `agent-ruletrace`
-- State: `PUBLISHING`
+- State: `RELEASING`
 - State updated: 2026-07-29
 - Opportunity score: 86/100
-- Previous state: `DOCUMENTING` (profile sources, changelog, community files,
-  and CI)
-- Next state: `PUBLISHING` (public repository, metadata, main push, and CI
-  verification)
+- Previous state: `PUBLISHING` (public repository, metadata, main push, and
+  cross-platform CI verification)
+- Next state: `RELEASING` (tag and publish `v0.1.0` with release notes and
+  installable package artifact)
 
 ## State history
 
@@ -26,6 +26,7 @@
 | 2026-07-29 | `DOCUMENTING`  | Unit/profile tests plus a real tarball clean-install test now verify all commands, stable JSON, offline execution, safe package contents, and exit codes 0/1/2 against a mixed-agent fixture.                                |
 | 2026-07-29 | `DOCUMENTING`  | The public README, MIT license, executable mixed-agent example, and reproducible SVG terminal demo now explain and visibly prove the primary use case.                                                                       |
 | 2026-07-29 | `PUBLISHING`   | Generated source metadata, changelog, contribution/security/conduct policies, issue and PR templates, Dependabot, formatting/linting/secret gates, and Node 22/24 CI complete the publication-ready repository.              |
+| 2026-07-29 | `RELEASING`    | The public `amarakramali/agent-ruletrace` repository now has its description, topics, default `main` branch, and a successful seven-job Node 22/24 CI run across Ubuntu, Windows, and macOS.                                 |
 
 ## Current-cycle rule
 
