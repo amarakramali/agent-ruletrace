@@ -3,6 +3,7 @@ import { Command, InvalidArgumentError } from "commander";
 import { pathToFileURL } from "node:url";
 import process from "node:process";
 import { findGitRoot, InputError } from "./core/paths.js";
+import { CLAUDE_PROFILE, traceClaude } from "./profiles/claude.js";
 import { CODEX_PROFILE, traceCodex } from "./profiles/codex.js";
 import { renderText } from "./render/text.js";
 
@@ -13,7 +14,9 @@ interface ExplainOptions {
   format: "text" | "json";
   includeUser: boolean;
   codexHome?: string;
+  claudeHome?: string;
   fallback?: string[];
+  exclude?: string[];
   maxBytes: number;
 }
 
@@ -40,32 +43,50 @@ export function buildProgram(): Command {
     .command("explain")
     .description("Trace instruction discovery for one client and target path.")
     .argument("<target>", "target file or directory, relative to --cwd")
-    .requiredOption("--client <client>", "client profile (currently: codex)")
+    .requiredOption("--client <client>", "client profile: codex or claude")
     .option("--root <path>", "project root; defaults to the nearest Git root")
     .option("--cwd <path>", "simulated client launch directory", process.cwd())
     .option("--format <format>", "output format: text or json", "text")
     .option("--include-user", "include user-level instruction files", false)
     .option("--codex-home <path>", "Codex home used with --include-user")
+    .option("--claude-home <path>", "Claude home used with --include-user")
     .option("--fallback <filename>", "Codex fallback filename; repeatable", collect, [])
+    .option("--exclude <glob>", "additional Claude exclusion glob; repeatable", collect, [])
     .option("--max-bytes <bytes>", "Codex project instruction byte limit", parseNonNegativeInteger, 32768)
     .action(async (target: string, rawOptions: ExplainOptions) => {
-      if (rawOptions.client !== "codex") {
-        throw new InputError(`profile is not implemented yet: ${rawOptions.client} (available: codex)`);
+      if (rawOptions.client !== "codex" && rawOptions.client !== "claude") {
+        throw new InputError(
+          `profile is not implemented yet: ${rawOptions.client} (available: codex, claude)`,
+        );
       }
       if (rawOptions.format !== "text" && rawOptions.format !== "json") {
         throw new InputError(`unsupported format: ${rawOptions.format} (available: text, json)`);
       }
 
       const root = rawOptions.root ?? (await findGitRoot(rawOptions.cwd));
-      const trace = await traceCodex({
-        root,
-        cwd: rawOptions.cwd,
-        target,
-        includeUser: rawOptions.includeUser,
-        maxBytes: rawOptions.maxBytes,
-        ...(rawOptions.codexHome === undefined ? {} : { codexHome: rawOptions.codexHome }),
-        ...(rawOptions.fallback === undefined ? {} : { fallbackFilenames: rawOptions.fallback }),
-      });
+      const trace =
+        rawOptions.client === "codex"
+          ? await traceCodex({
+              root,
+              cwd: rawOptions.cwd,
+              target,
+              includeUser: rawOptions.includeUser,
+              maxBytes: rawOptions.maxBytes,
+              ...(rawOptions.codexHome === undefined ? {} : { codexHome: rawOptions.codexHome }),
+              ...(rawOptions.fallback === undefined
+                ? {}
+                : { fallbackFilenames: rawOptions.fallback }),
+            })
+          : await traceClaude({
+              root,
+              cwd: rawOptions.cwd,
+              target,
+              includeUser: rawOptions.includeUser,
+              ...(rawOptions.claudeHome === undefined
+                ? {}
+                : { claudeHome: rawOptions.claudeHome }),
+              ...(rawOptions.exclude === undefined ? {} : { excludes: rawOptions.exclude }),
+            });
       process.stdout.write(
         rawOptions.format === "json" ? `${JSON.stringify(trace, null, 2)}\n` : `${renderText(trace)}\n`,
       );
@@ -78,9 +99,11 @@ export function buildProgram(): Command {
     .command("profiles")
     .description("List implemented client profiles and their primary sources.")
     .action(() => {
-      process.stdout.write(
-        `${CODEX_PROFILE.id}\t${CODEX_PROFILE.status}\tverified ${CODEX_PROFILE.verifiedOn}\t${CODEX_PROFILE.sources[0]?.url}\n`,
-      );
+      for (const profile of [CODEX_PROFILE, CLAUDE_PROFILE]) {
+        process.stdout.write(
+          `${profile.id}\t${profile.status}\tverified ${profile.verifiedOn}\t${profile.sources[0]?.url}\n`,
+        );
+      }
     });
 
   return program;

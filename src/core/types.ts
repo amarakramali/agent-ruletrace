@@ -2,6 +2,11 @@ export type TraceStatus =
   | "loaded"
   | "loaded-truncated"
   | "shadowed"
+  | "excluded"
+  | "inapplicable"
+  | "parse-error"
+  | "import-cycle"
+  | "import-depth"
   | "skipped-empty"
   | "skipped-limit"
   | "skipped-security-boundary";
@@ -31,10 +36,11 @@ export interface TraceInput {
 
 export interface TraceDecision {
   path: string;
-  kind: "user" | "project";
-  phase: "startup";
+  kind: "managed" | "user" | "project" | "rule" | "import" | "settings";
+  phase: "startup" | "lazy" | "import";
   status: TraceStatus;
   sequence?: number;
+  matchedPattern?: string;
   bytesAvailable: number;
   bytesIncluded: number;
   selectedOver?: string[];
@@ -67,4 +73,13 @@ export interface CodexTraceOptions {
   codexHome?: string;
   fallbackFilenames?: string[];
   maxBytes?: number;
+}
+
+export interface ClaudeTraceOptions {
+  root: string;
+  cwd: string;
+  target: string;
+  includeUser?: boolean;
+  claudeHome?: string;
+  excludes?: string[];
 }

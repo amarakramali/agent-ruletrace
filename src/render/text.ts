@@ -9,6 +9,16 @@ function statusLabel(decision: TraceDecision): string {
       return pc.yellow("TRUNCATED".padEnd(12));
     case "shadowed":
       return pc.dim("SHADOWED".padEnd(12));
+    case "excluded":
+      return pc.dim("EXCLUDED".padEnd(12));
+    case "inapplicable":
+      return pc.dim("NO MATCH".padEnd(12));
+    case "parse-error":
+      return pc.red("PARSE ERROR".padEnd(12));
+    case "import-cycle":
+      return pc.yellow("CYCLE".padEnd(12));
+    case "import-depth":
+      return pc.yellow("DEPTH".padEnd(12));
     case "skipped-empty":
       return pc.dim("EMPTY".padEnd(12));
     case "skipped-limit":

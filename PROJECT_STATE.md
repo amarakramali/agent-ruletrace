@@ -5,8 +5,8 @@
 - State: `BUILDING`
 - State updated: 2026-07-29
 - Opportunity score: 86/100
-- Previous state: `ARCHITECTING`
-- Next state: `BUILDING` (Claude Code profile)
+- Previous state: `BUILDING` (Codex profile)
+- Next state: `BUILDING` (Gemini CLI profile)
 
 ## State history
 
@@ -17,6 +17,7 @@
 | 2026-07-29 | `SELECTED` | Agent RuleTrace scored 86/100 and beat the other researched candidates after exact-solution checks. |
 | 2026-07-29 | `ARCHITECTING` | The MVP contract, client profiles, data flow, security boundaries, error behavior, test plan, packaging, demo, and release gates are defined in `docs/ARCHITECTURE.md`. |
 | 2026-07-29 | `BUILDING` | The executable CLI foundation, normalized trace model, safe path boundary, text/JSON renderers, and fixture-tested Codex profile are implemented. |
+| 2026-07-29 | `BUILDING` | The Claude Code profile now explains launch-time and lazy instruction discovery, path-scoped rules, merged exclusions, imports, cycles, depth limits, user scope, and parse failures. |
 
 ## Current-cycle rule
 
