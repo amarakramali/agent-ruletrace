@@ -2,11 +2,11 @@
 
 - Project: Agent RuleTrace
 - Repository slug: `agent-ruletrace`
-- State: `TESTING`
+- State: `DOCUMENTING`
 - State updated: 2026-07-29
 - Opportunity score: 86/100
-- Previous state: `BUILDING` (GitHub Copilot CLI profile)
-- Next state: `TESTING` (end-to-end, clean-install, and security checks)
+- Previous state: `TESTING` (end-to-end, clean-install, and security checks)
+- Next state: `DOCUMENTING` (README, profile sources, demo, and community files)
 
 ## State history
 
@@ -21,6 +21,7 @@
 | 2026-07-29 | `BUILDING` | The Gemini CLI profile now explains effective context filenames, global/workspace/JIT discovery, imports, cycles, depth limits, settings precedence, security boundaries, and duplicate physical sources. |
 | 2026-07-29 | `BUILDING` | The GitHub Copilot CLI profile now explains user, repository-wide, path-specific, and agent instructions; root/cwd/target discovery; applyTo matching; documented content deduplication; and unspecified general precedence. |
 | 2026-07-29 | `TESTING` | The four-profile registry and matrix command complete the MVP implementation with stable text/JSON comparison, aggregate warnings, shared CLI dispatch, and fixture-backed behavior. |
+| 2026-07-29 | `DOCUMENTING` | Unit/profile tests plus a real tarball clean-install test now verify all commands, stable JSON, offline execution, safe package contents, and exit codes 0/1/2 against a mixed-agent fixture. |
 
 ## Current-cycle rule
 

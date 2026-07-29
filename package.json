@@ -14,8 +14,9 @@
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts --clean",
     "test": "vitest run",
+    "test:package": "node scripts/test-package.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build && npm run test:package"
   },
   "keywords": [
     "coding-agents",
