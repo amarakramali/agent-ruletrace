@@ -11,8 +11,7 @@ function loadedPaths(trace: TraceResult): string {
   const paths = trace.decisions
     .filter(
       (decision) =>
-        decision.status === "loaded" ||
-        decision.status === "loaded-truncated",
+        decision.status === "loaded" || decision.status === "loaded-truncated",
     )
     .map((decision) => decision.path);
   return paths.length === 0 ? "—" : paths.join(", ");
@@ -49,7 +48,11 @@ export function renderMatrix(matrix: MatrixResult): string {
     `${matrix.summary.profileCount} profile(s), ${matrix.summary.includedFiles} file(s), ${matrix.summary.includedBytes} bytes, ~${matrix.summary.approximateTokens} tokens`,
   );
   if (matrix.summary.warningCount > 0) {
-    lines.push(pc.yellow(`${matrix.summary.warningCount} warning(s) across all profiles`));
+    lines.push(
+      pc.yellow(
+        `${matrix.summary.warningCount} warning(s) across all profiles`,
+      ),
+    );
   }
   return lines.join("\n");
 }

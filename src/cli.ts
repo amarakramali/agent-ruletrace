@@ -5,10 +5,7 @@ import process from "node:process";
 import { traceMatrix } from "./core/matrix.js";
 import { findGitRoot, InputError } from "./core/paths.js";
 import type { ProfileTraceOptions } from "./core/types.js";
-import {
-  PROFILE_REGISTRY,
-  traceProfile,
-} from "./profiles/registry.js";
+import { PROFILE_REGISTRY, traceProfile } from "./profiles/registry.js";
 import { renderMatrix } from "./render/matrix.js";
 import { renderText } from "./render/text.js";
 
@@ -33,6 +30,10 @@ interface ExplainOptions extends CommonOptions {
 
 type MatrixOptions = CommonOptions;
 
+interface ProfilesOptions {
+  format: "text" | "json";
+}
+
 function parseNonNegativeInteger(value: string): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 0) {
@@ -47,7 +48,9 @@ function collect(value: string, previous: string[]): string[] {
 
 function validateFormat(format: string): asserts format is "text" | "json" {
   if (format !== "text" && format !== "json") {
-    throw new InputError(`unsupported format: ${format} (available: text, json)`);
+    throw new InputError(
+      `unsupported format: ${format} (available: text, json)`,
+    );
   }
 }
 
@@ -61,10 +64,18 @@ function profileTraceOptions(
     cwd: options.cwd,
     target,
     includeUser: options.includeUser,
-    ...(options.codexHome === undefined ? {} : { codexHome: options.codexHome }),
-    ...(options.claudeHome === undefined ? {} : { claudeHome: options.claudeHome }),
-    ...(options.geminiHome === undefined ? {} : { geminiHome: options.geminiHome }),
-    ...(options.copilotHome === undefined ? {} : { copilotHome: options.copilotHome }),
+    ...(options.codexHome === undefined
+      ? {}
+      : { codexHome: options.codexHome }),
+    ...(options.claudeHome === undefined
+      ? {}
+      : { claudeHome: options.claudeHome }),
+    ...(options.geminiHome === undefined
+      ? {}
+      : { geminiHome: options.geminiHome }),
+    ...(options.copilotHome === undefined
+      ? {}
+      : { copilotHome: options.copilotHome }),
     ...(options.fallback === undefined
       ? {}
       : { fallbackFilenames: options.fallback }),
@@ -87,7 +98,10 @@ export function buildProgram(): Command {
     .command("explain")
     .description("Trace instruction discovery for one client and target path.")
     .argument("<target>", "target file or directory, relative to --cwd")
-    .requiredOption("--client <client>", "client profile: codex, claude, gemini, or copilot")
+    .requiredOption(
+      "--client <client>",
+      "client profile: codex, claude, gemini, or copilot",
+    )
     .option("--root <path>", "project root; defaults to the nearest Git root")
     .option("--cwd <path>", "simulated client launch directory", process.cwd())
     .option("--format <format>", "output format: text or json", "text")
@@ -96,15 +110,30 @@ export function buildProgram(): Command {
     .option("--claude-home <path>", "Claude home used with --include-user")
     .option("--gemini-home <path>", "Gemini home used with --include-user")
     .option("--copilot-home <path>", "Copilot home used with --include-user")
-    .option("--fallback <filename>", "Codex fallback filename; repeatable", collect, [])
-    .option("--exclude <glob>", "additional Claude exclusion glob; repeatable", collect, [])
+    .option(
+      "--fallback <filename>",
+      "Codex fallback filename; repeatable",
+      collect,
+      [],
+    )
+    .option(
+      "--exclude <glob>",
+      "additional Claude exclusion glob; repeatable",
+      collect,
+      [],
+    )
     .option(
       "--context-file <filename>",
       "effective Gemini context filename; repeatable",
       collect,
       [],
     )
-    .option("--max-bytes <bytes>", "Codex project instruction byte limit", parseNonNegativeInteger, 32768)
+    .option(
+      "--max-bytes <bytes>",
+      "Codex project instruction byte limit",
+      parseNonNegativeInteger,
+      32768,
+    )
     .action(async (target: string, rawOptions: ExplainOptions) => {
       validateFormat(rawOptions.format);
       const root = rawOptions.root ?? (await findGitRoot(rawOptions.cwd));
@@ -113,7 +142,9 @@ export function buildProgram(): Command {
         profileTraceOptions(target, root, rawOptions),
       );
       process.stdout.write(
-        rawOptions.format === "json" ? `${JSON.stringify(trace, null, 2)}\n` : `${renderText(trace)}\n`,
+        rawOptions.format === "json"
+          ? `${JSON.stringify(trace, null, 2)}\n`
+          : `${renderText(trace)}\n`,
       );
       if (trace.summary.warnings.length > 0) {
         process.exitCode = 1;
@@ -122,7 +153,9 @@ export function buildProgram(): Command {
 
   program
     .command("matrix")
-    .description("Compare instruction discovery across every implemented client profile.")
+    .description(
+      "Compare instruction discovery across every implemented client profile.",
+    )
     .argument("<target>", "target file or directory, relative to --cwd")
     .option("--root <path>", "project root; defaults to the nearest Git root")
     .option("--cwd <path>", "simulated client launch directory", process.cwd())
@@ -150,11 +183,29 @@ export function buildProgram(): Command {
 
   program
     .command("profiles")
-    .description("List implemented client profiles and their primary sources.")
-    .action(() => {
+    .description(
+      "List implemented client profiles and their specification sources.",
+    )
+    .option("--format <format>", "output format: text or json", "text")
+    .action((rawOptions: ProfilesOptions) => {
+      validateFormat(rawOptions.format);
+      if (rawOptions.format === "json") {
+        process.stdout.write(
+          `${JSON.stringify(
+            {
+              schemaVersion: 1,
+              toolVersion: "0.1.0",
+              profiles: PROFILE_REGISTRY.map((profile) => profile.metadata),
+            },
+            null,
+            2,
+          )}\n`,
+        );
+        return;
+      }
       for (const { metadata: profile } of PROFILE_REGISTRY) {
         process.stdout.write(
-          `${profile.id}\t${profile.status}\tverified ${profile.verifiedOn}\t${profile.sources[0]?.url}\n`,
+          `${profile.id}\t${profile.status}\tverified ${profile.verifiedOn}\t${profile.sources.map((source) => source.url).join(",")}\n`,
         );
       }
     });

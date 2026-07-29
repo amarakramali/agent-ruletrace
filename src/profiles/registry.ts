@@ -35,7 +35,9 @@ export const PROFILE_REGISTRY: readonly RegisteredProfile[] = [
         ...(options.fallbackFilenames === undefined
           ? {}
           : { fallbackFilenames: options.fallbackFilenames }),
-        ...(options.maxBytes === undefined ? {} : { maxBytes: options.maxBytes }),
+        ...(options.maxBytes === undefined
+          ? {}
+          : { maxBytes: options.maxBytes }),
       }),
   },
   {
@@ -51,7 +53,9 @@ export const PROFILE_REGISTRY: readonly RegisteredProfile[] = [
         ...(options.claudeHome === undefined
           ? {}
           : { claudeHome: options.claudeHome }),
-        ...(options.excludes === undefined ? {} : { excludes: options.excludes }),
+        ...(options.excludes === undefined
+          ? {}
+          : { excludes: options.excludes }),
       }),
   },
   {

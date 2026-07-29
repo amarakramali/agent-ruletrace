@@ -64,15 +64,23 @@ function matchesAny(candidate: string, patterns: string[]): boolean {
   });
 }
 
-function pathKind(context: TraceContext, candidate: string): "user" | "project" {
-  return context.claudeHome && isWithin(context.claudeHome, candidate) ? "user" : "project";
+function pathKind(
+  context: TraceContext,
+  candidate: string,
+): "user" | "project" {
+  return context.claudeHome && isWithin(context.claudeHome, candidate)
+    ? "user"
+    : "project";
 }
 
 function shown(context: TraceContext, candidate: string): string {
   return displayPath(context.root, candidate, context.claudeHome);
 }
 
-async function readExcludes(settingsPath: string, context: TraceContext): Promise<string[]> {
+async function readExcludes(
+  settingsPath: string,
+  context: TraceContext,
+): Promise<string[]> {
   let raw: string;
   try {
     raw = await readFile(settingsPath, "utf8");
@@ -92,7 +100,10 @@ async function readExcludes(settingsPath: string, context: TraceContext): Promis
     if (excludes === undefined) {
       return [];
     }
-    if (!Array.isArray(excludes) || !excludes.every((item) => typeof item === "string")) {
+    if (
+      !Array.isArray(excludes) ||
+      !excludes.every((item) => typeof item === "string")
+    ) {
       throw new Error("claudeMdExcludes must be an array of strings");
     }
     return excludes;
@@ -108,7 +119,9 @@ async function readExcludes(settingsPath: string, context: TraceContext): Promis
       confidence: "documented",
       source: SOURCE_ID,
     });
-    context.warnings.push(`${shown(context, settingsPath)} could not be parsed`);
+    context.warnings.push(
+      `${shown(context, settingsPath)} could not be parsed`,
+    );
     return [];
   }
 }
@@ -122,12 +135,15 @@ async function resolveImport(
     specifier === "~"
       ? context.claudeHome
       : specifier.startsWith("~/")
-        ? context.claudeHome && path.join(context.claudeHome, specifier.slice(2))
+        ? context.claudeHome &&
+          path.join(context.claudeHome, specifier.slice(2))
         : specifier;
   if (!expanded) {
     return undefined;
   }
-  const candidate = path.isAbsolute(expanded) ? expanded : path.resolve(path.dirname(sourcePath), expanded);
+  const candidate = path.isAbsolute(expanded)
+    ? expanded
+    : path.resolve(path.dirname(sourcePath), expanded);
   try {
     const resolved = await realpath(candidate);
     return (await lstat(resolved)).isFile() ? resolved : undefined;
@@ -161,7 +177,9 @@ async function traceImports(
         confidence: "documented",
         source: SOURCE_ID,
       });
-      context.warnings.push(`${shown(context, sourcePath)} imports a missing file: ${specifier}`);
+      context.warnings.push(
+        `${shown(context, sourcePath)} imports a missing file: ${specifier}`,
+      );
       continue;
     }
 
@@ -177,7 +195,9 @@ async function traceImports(
         confidence: "documented",
         source: SOURCE_ID,
       });
-      context.warnings.push(`${shown(context, candidate)} exceeds the four-hop import limit`);
+      context.warnings.push(
+        `${shown(context, candidate)} exceeds the four-hop import limit`,
+      );
       continue;
     }
 
@@ -193,13 +213,16 @@ async function traceImports(
         confidence: "documented",
         source: SOURCE_ID,
       });
-      context.warnings.push(`${shown(context, candidate)} closes an import cycle`);
+      context.warnings.push(
+        `${shown(context, candidate)} closes an import cycle`,
+      );
       continue;
     }
 
     const allowed =
       isWithin(context.root, candidate) ||
-      (context.claudeHome !== undefined && isWithin(context.claudeHome, candidate));
+      (context.claudeHome !== undefined &&
+        isWithin(context.claudeHome, candidate));
     if (!allowed) {
       context.decisions.push({
         path: posixPath(candidate),
@@ -212,7 +235,9 @@ async function traceImports(
         confidence: "host-dependent",
         source: SECURITY_SOURCE_ID,
       });
-      context.warnings.push(`${shown(context, sourcePath)} has an external import that was not read`);
+      context.warnings.push(
+        `${shown(context, sourcePath)} has an external import that was not read`,
+      );
       continue;
     }
 
@@ -340,13 +365,17 @@ async function traceRule(
       confidence: "documented",
       source: SOURCE_ID,
     });
-    context.warnings.push(`${shown(context, candidate)} has invalid frontmatter`);
+    context.warnings.push(
+      `${shown(context, candidate)} has invalid frontmatter`,
+    );
     return;
   }
 
   let matchedPattern: string | undefined;
   if (parsed.paths) {
-    const relativeTarget = posixPath(path.relative(context.root, context.target));
+    const relativeTarget = posixPath(
+      path.relative(context.root, context.target),
+    );
     matchedPattern = parsed.paths.find((pattern) => {
       try {
         return minimatch(relativeTarget, pattern, { dot: true });
@@ -389,7 +418,10 @@ async function traceRule(
   await traceImports(candidate, content, context, 0, new Set([candidate]));
 }
 
-async function memoryCandidates(directory: string, root: string): Promise<string[]> {
+async function memoryCandidates(
+  directory: string,
+  root: string,
+): Promise<string[]> {
   const candidates = [
     path.join(directory, "CLAUDE.md"),
     path.join(directory, ".claude", "CLAUDE.md"),
@@ -405,7 +437,9 @@ async function memoryCandidates(directory: string, root: string): Promise<string
   return existing;
 }
 
-export async function traceClaude(options: ClaudeTraceOptions): Promise<TraceResult> {
+export async function traceClaude(
+  options: ClaudeTraceOptions,
+): Promise<TraceResult> {
   const cwd = await canonicalDirectory(options.cwd, "cwd");
   const root = await canonicalDirectory(options.root, "root");
   if (!isWithin(root, cwd)) {
@@ -413,12 +447,17 @@ export async function traceClaude(options: ClaudeTraceOptions): Promise<TraceRes
   }
   const target = await canonicalTarget(options.target, cwd);
   if (!isWithin(root, target)) {
-    throw new InputError(`target must be inside root: target=${target}, root=${root}`);
+    throw new InputError(
+      `target must be inside root: target=${target}, root=${root}`,
+    );
   }
 
   const includeUser = options.includeUser ?? false;
   const claudeHome = includeUser
-    ? await canonicalDirectory(options.claudeHome ?? path.join(os.homedir(), ".claude"), "Claude home")
+    ? await canonicalDirectory(
+        options.claudeHome ?? path.join(os.homedir(), ".claude"),
+        "Claude home",
+      )
     : undefined;
   const context: TraceContext = {
     root,
@@ -432,19 +471,33 @@ export async function traceClaude(options: ClaudeTraceOptions): Promise<TraceRes
   };
 
   if (claudeHome) {
-    context.excludes.push(...(await readExcludes(path.join(claudeHome, "settings.json"), context)));
+    context.excludes.push(
+      ...(await readExcludes(path.join(claudeHome, "settings.json"), context)),
+    );
   }
   context.excludes.push(
-    ...(await readExcludes(path.join(root, ".claude", "settings.json"), context)),
-    ...(await readExcludes(path.join(root, ".claude", "settings.local.json"), context)),
+    ...(await readExcludes(
+      path.join(root, ".claude", "settings.json"),
+      context,
+    )),
+    ...(await readExcludes(
+      path.join(root, ".claude", "settings.local.json"),
+      context,
+    )),
   );
 
   if (claudeHome) {
-    const userMemory = await existingFile(path.join(claudeHome, "CLAUDE.md"), claudeHome);
+    const userMemory = await existingFile(
+      path.join(claudeHome, "CLAUDE.md"),
+      claudeHome,
+    );
     if (userMemory) {
       await traceMemoryFile(userMemory, context, "startup");
     }
-    for (const rule of await markdownFiles(path.join(claudeHome, "rules"), claudeHome)) {
+    for (const rule of await markdownFiles(
+      path.join(claudeHome, "rules"),
+      claudeHome,
+    )) {
       await traceRule(rule, context, "startup");
     }
   }
@@ -453,12 +506,17 @@ export async function traceClaude(options: ClaudeTraceOptions): Promise<TraceRes
     for (const candidate of await memoryCandidates(directory, root)) {
       await traceMemoryFile(candidate, context, "startup");
     }
-    for (const rule of await markdownFiles(path.join(directory, ".claude", "rules"), root)) {
+    for (const rule of await markdownFiles(
+      path.join(directory, ".claude", "rules"),
+      root,
+    )) {
       await traceRule(rule, context, "startup");
     }
   }
 
-  const targetDirectory = (await lstat(target)).isDirectory() ? target : path.dirname(target);
+  const targetDirectory = (await lstat(target)).isDirectory()
+    ? target
+    : path.dirname(target);
   const launchDirectories = new Set(pathChain(root, cwd));
   const lazyDirectories = pathChain(root, targetDirectory).filter(
     (directory) => !launchDirectories.has(directory),
@@ -467,13 +525,21 @@ export async function traceClaude(options: ClaudeTraceOptions): Promise<TraceRes
     for (const candidate of await memoryCandidates(directory, root)) {
       await traceMemoryFile(candidate, context, "lazy");
     }
-    for (const rule of await markdownFiles(path.join(directory, ".claude", "rules"), root)) {
+    for (const rule of await markdownFiles(
+      path.join(directory, ".claude", "rules"),
+      root,
+    )) {
       await traceRule(rule, context, "lazy");
     }
   }
 
-  const included = context.decisions.filter((decision) => decision.status === "loaded");
-  const includedBytes = included.reduce((total, decision) => total + decision.bytesIncluded, 0);
+  const included = context.decisions.filter(
+    (decision) => decision.status === "loaded",
+  );
+  const includedBytes = included.reduce(
+    (total, decision) => total + decision.bytesIncluded,
+    0,
+  );
   return {
     schemaVersion: 1,
     toolVersion: "0.1.0",

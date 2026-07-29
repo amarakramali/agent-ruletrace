@@ -1,6 +1,7 @@
 # Agent RuleTrace
 
-**Explain exactly which instruction files a coding agent sees for a target path—and why.**
+**Explain exactly which instruction files a coding agent sees for a target
+path—and why.**
 
 Agent RuleTrace is a local, read-only CLI for repositories that use Codex,
 Claude Code, Gemini CLI, or GitHub Copilot CLI. It traces repository-wide,
@@ -27,20 +28,21 @@ confidence, and the official source behind the modeled behavior.
 
 ## What it supports
 
-| Profile | Modeled behavior |
-| --- | --- |
-| OpenAI Codex | User and project `AGENTS.md`, overrides, fallback filenames, root-to-CWD order, empty-file behavior, and byte-limit truncation |
-| Anthropic Claude Code | `CLAUDE.md`, `CLAUDE.local.md`, lazy target ancestry, `.claude/rules`, `paths` globs, exclusions, imports, cycles, and depth limits |
-| Google Gemini CLI | Global/workspace/just-in-time context, configured context filenames, imports, cycles, settings precedence, and duplicate sources |
-| GitHub Copilot CLI | User, repository-wide, `applyTo`, and agent instructions; root/CWD/target discovery; content deduplication; and unspecified general order |
+| Profile               | Modeled behavior                                                                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| OpenAI Codex          | User and project `AGENTS.md`, overrides, fallback filenames, root-to-CWD order, empty-file behavior, and byte-limit truncation            |
+| Anthropic Claude Code | `CLAUDE.md`, `CLAUDE.local.md`, lazy target ancestry, `.claude/rules`, `paths` globs, exclusions, imports, cycles, and depth limits       |
+| Google Gemini CLI     | Global/workspace/just-in-time context, configured context filenames, imports, cycles, settings precedence, and duplicate sources          |
+| GitHub Copilot CLI    | User, repository-wide, `applyTo`, and agent instructions; root/CWD/target discovery; content deduplication; and unspecified general order |
 
 Profile rules are versioned with verification dates and source URLs. See
-[the validation evidence](docs/VALIDATION.md) and
+[the generated profile-source catalog](docs/PROFILE_SOURCES.md),
+[the validation evidence](docs/VALIDATION.md), and
 [technical architecture](docs/ARCHITECTURE.md).
 
 ## Installation
 
-Requires Node.js 20 or newer.
+Requires a supported Node.js LTS release: Node 22 or newer.
 
 Run without installing:
 
@@ -76,7 +78,7 @@ ruletrace explain src/api/users.ts --client gemini --cwd . --format json
 ruletrace matrix src/api/users.ts --cwd . --format json
 ```
 
-List implemented profiles and their primary specifications:
+List implemented profiles and their specifications:
 
 ```bash
 ruletrace profiles
@@ -114,8 +116,8 @@ GitHub Copilot CLI            5     370      93       0
 - `SHADOWED`: an applicable candidate lost to a documented selection rule or
   duplicate-content rule.
 - `NO MATCH` or `EXCLUDED`: discovered but not applicable to the target.
-- `PARSE ERROR`, `CYCLE`, `DEPTH`, `LIMIT`, or `BLOCKED`: tracing continued,
-  but the result contains a warning.
+- `PARSE ERROR`, `CYCLE`, `DEPTH`, `LIMIT`, or `BLOCKED`: tracing continued, but
+  the result contains a warning.
 
 Sequence numbers appear only when the client guarantees order. Profiles such as
 Copilot CLI deliberately omit sequence numbers where the specification does not
@@ -123,12 +125,12 @@ guarantee a general precedence.
 
 Exit codes are stable:
 
-| Code | Meaning |
-| --- | --- |
-| `0` | Complete trace, including a valid trace with no instruction files |
-| `1` | Trace produced with warnings or indeterminate inputs |
-| `2` | Invalid invocation, missing target, unknown profile, or inconsistent paths |
-| `3` | Unexpected internal failure |
+| Code | Meaning                                                                    |
+| ---- | -------------------------------------------------------------------------- |
+| `0`  | Complete trace, including a valid trace with no instruction files          |
+| `1`  | Trace produced with warnings or indeterminate inputs                       |
+| `2`  | Invalid invocation, missing target, unknown profile, or inconsistent paths |
+| `3`  | Unexpected internal failure                                                |
 
 ## Configuration
 
@@ -153,8 +155,7 @@ Client-specific `explain` options include:
 - Codex: `--fallback <filename>` (repeatable), `--max-bytes <bytes>`,
   `--codex-home <path>`.
 - Claude Code: `--exclude <glob>` (repeatable), `--claude-home <path>`.
-- Gemini CLI: `--context-file <filename>` (repeatable),
-  `--gemini-home <path>`.
+- Gemini CLI: `--context-file <filename>` (repeatable), `--gemini-home <path>`.
 - Copilot CLI: `--copilot-home <path>`.
 
 Run `ruletrace explain --help` or `ruletrace matrix --help` for the complete
@@ -202,8 +203,8 @@ failure behavior, test strategy, and release gates are documented in
   tokenizer results.
 - Profile behavior can change upstream; each profile exposes its source URLs and
   last verification date.
-- Windows, macOS, and Linux are targeted; the first public CI matrix will verify
-  Node 20 and the current LTS across all three.
+- Windows, macOS, and Linux are verified in CI on the supported Node 22 and Node
+  24 LTS lines.
 
 ## Development
 
@@ -213,12 +214,17 @@ npm run check
 npm run demo
 ```
 
-`npm run check` performs strict TypeScript validation, the unit/profile suite,
-the production build, a real tarball clean-install, offline CLI runs, package
-content assertions, and exit-code checks.
+`npm run check` verifies formatting, lint rules, strict TypeScript, the
+unit/profile suite, the production build, a real tarball clean-install, offline
+CLI runs, package contents, exit codes, and common credential patterns.
 
 Contributions should include a focused test and a primary source for any
 profile-behavior change. Please avoid inferring undocumented precedence.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow and
+[SECURITY.md](SECURITY.md) for private vulnerability reporting. Participation is
+governed by the [Code of Conduct](CODE_OF_CONDUCT.md). Release history is kept
+in [CHANGELOG.md](CHANGELOG.md).
 
 ## Roadmap
 

@@ -13,7 +13,11 @@ async function fixture(): Promise<string> {
   return root;
 }
 
-async function put(root: string, relative: string, content: string): Promise<void> {
+async function put(
+  root: string,
+  relative: string,
+  content: string,
+): Promise<void> {
   const target = path.join(root, relative);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content, "utf8");
@@ -21,7 +25,9 @@ async function put(root: string, relative: string, content: string): Promise<voi
 
 afterEach(async () => {
   await Promise.all(
-    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+    temporaryRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
@@ -60,7 +66,8 @@ describe("Gemini CLI profile", () => {
     ]);
     expect(
       trace.decisions.filter(
-        (decision) => decision.phase === "lazy" && decision.status === "shadowed",
+        (decision) =>
+          decision.phase === "lazy" && decision.status === "shadowed",
       ),
     ).toHaveLength(2);
   });
@@ -105,12 +112,17 @@ describe("Gemini CLI profile", () => {
           kind: "settings",
           status: "loaded",
         }),
-        expect.objectContaining({ path: "<home>/PROJECT.md", status: "loaded" }),
+        expect.objectContaining({
+          path: "<home>/PROJECT.md",
+          status: "loaded",
+        }),
         expect.objectContaining({ path: "PROJECT.md", status: "loaded" }),
         expect.objectContaining({ path: "GEMINI.md", status: "loaded" }),
       ]),
     );
-    expect(trace.decisions.some((decision) => decision.path.endsWith("USER.md"))).toBe(false);
+    expect(
+      trace.decisions.some((decision) => decision.path.endsWith("USER.md")),
+    ).toBe(false);
     expect(trace.summary.includedFiles).toBe(3);
   });
 
@@ -119,9 +131,13 @@ describe("Gemini CLI profile", () => {
     await put(
       root,
       "GEMINI.md",
-      ["@docs/base.md", "`@ignored-inline.md`", "```md", "@ignored-fenced.md", "```"].join(
-        "\n",
-      ),
+      [
+        "@docs/base.md",
+        "`@ignored-inline.md`",
+        "```md",
+        "@ignored-fenced.md",
+        "```",
+      ].join("\n"),
     );
     await put(root, "docs/base.md", "@../GEMINI.md\nbase");
     await put(root, "target.ts", "");
@@ -137,7 +153,9 @@ describe("Gemini CLI profile", () => {
       { file: "docs/base.md", status: "loaded" },
       { file: "GEMINI.md", status: "import-cycle" },
     ]);
-    expect(trace.summary.warnings).toEqual(["GEMINI.md closes an import cycle"]);
+    expect(trace.summary.warnings).toEqual([
+      "GEMINI.md closes an import cycle",
+    ]);
   });
 
   it("loads five import hops and stops the sixth", async () => {
@@ -153,7 +171,9 @@ describe("Gemini CLI profile", () => {
 
     const trace = await traceGemini({ root, cwd: root, target: "target.ts" });
 
-    expect(trace.decisions.find((decision) => decision.path === "imports/f.md")).toMatchObject({
+    expect(
+      trace.decisions.find((decision) => decision.path === "imports/f.md"),
+    ).toMatchObject({
       status: "import-depth",
       bytesIncluded: 0,
     });
@@ -173,8 +193,14 @@ describe("Gemini CLI profile", () => {
       contextFilenames: ["SHARED.md"],
     });
 
-    expect(trace.decisions[0]).toMatchObject({ path: "SHARED.md", status: "loaded" });
-    expect(trace.decisions[1]).toMatchObject({ path: "GEMINI.md", status: "shadowed" });
+    expect(trace.decisions[0]).toMatchObject({
+      path: "SHARED.md",
+      status: "loaded",
+    });
+    expect(trace.decisions[1]).toMatchObject({
+      path: "GEMINI.md",
+      status: "shadowed",
+    });
     expect(trace.summary.includedFiles).toBe(1);
   });
 
@@ -207,7 +233,12 @@ describe("Gemini CLI profile", () => {
       path: ".gemini/settings.json",
       status: "parse-error",
     });
-    expect(trace.decisions[1]).toMatchObject({ path: "GEMINI.md", status: "loaded" });
-    expect(trace.summary.warnings).toEqual([".gemini/settings.json could not be parsed"]);
+    expect(trace.decisions[1]).toMatchObject({
+      path: "GEMINI.md",
+      status: "loaded",
+    });
+    expect(trace.summary.warnings).toEqual([
+      ".gemini/settings.json could not be parsed",
+    ]);
   });
 });

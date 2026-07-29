@@ -126,7 +126,12 @@ async function selectInDirectory(
 ): Promise<SelectedCandidate | undefined> {
   const existing: ExistingCandidate[] = [];
   for (const name of names) {
-    const candidate = await inspectCandidate(path.join(directory, name), safetyRoot, displayRoot, home);
+    const candidate = await inspectCandidate(
+      path.join(directory, name),
+      safetyRoot,
+      displayRoot,
+      home,
+    );
     if (candidate) {
       existing.push(candidate);
     }
@@ -198,7 +203,8 @@ async function loadSelected(
   }
 
   const raw = await readFile(candidate.readPath);
-  const allowed = remaining === undefined ? raw.length : Math.min(raw.length, remaining);
+  const allowed =
+    remaining === undefined ? raw.length : Math.min(raw.length, remaining);
   const included = raw.subarray(0, allowed);
   const text = included.toString("utf8");
   if (text.trim() === "") {
@@ -219,7 +225,8 @@ async function loadSelected(
     };
   }
 
-  const status: TraceStatus = allowed < raw.length ? "loaded-truncated" : "loaded";
+  const status: TraceStatus =
+    allowed < raw.length ? "loaded-truncated" : "loaded";
   return {
     decision: {
       path: candidate.displayPath,
@@ -241,7 +248,9 @@ async function loadSelected(
   };
 }
 
-export async function traceCodex(options: CodexTraceOptions): Promise<TraceResult> {
+export async function traceCodex(
+  options: CodexTraceOptions,
+): Promise<TraceResult> {
   const cwd = await canonicalDirectory(options.cwd, "cwd");
   const root = await canonicalDirectory(options.root, "root");
   if (!isWithin(root, cwd)) {
@@ -249,13 +258,17 @@ export async function traceCodex(options: CodexTraceOptions): Promise<TraceResul
   }
   const target = await canonicalTarget(options.target, cwd);
   if (!isWithin(root, target)) {
-    throw new InputError(`target must be inside root: target=${target}, root=${root}`);
+    throw new InputError(
+      `target must be inside root: target=${target}, root=${root}`,
+    );
   }
 
   const includeUser = options.includeUser ?? false;
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) {
-    throw new InputError(`maxBytes must be a non-negative safe integer: ${maxBytes}`);
+    throw new InputError(
+      `maxBytes must be a non-negative safe integer: ${maxBytes}`,
+    );
   }
 
   const fallbacks = options.fallbackFilenames ?? [];
@@ -265,10 +278,18 @@ export async function traceCodex(options: CodexTraceOptions): Promise<TraceResul
   let sequence = 1;
 
   if (includeUser) {
-    const home = await canonicalDirectory(options.codexHome ?? path.join(os.homedir(), ".codex"), "codex home");
+    const home = await canonicalDirectory(
+      options.codexHome ?? path.join(os.homedir(), ".codex"),
+      "codex home",
+    );
     const existing: ExistingCandidate[] = [];
     for (const name of PRIMARY_NAMES) {
-      const candidate = await inspectCandidate(path.join(home, name), home, root, home);
+      const candidate = await inspectCandidate(
+        path.join(home, name),
+        home,
+        root,
+        home,
+      );
       if (candidate) {
         existing.push(candidate);
       }
@@ -292,7 +313,9 @@ export async function traceCodex(options: CodexTraceOptions): Promise<TraceResul
           confidence: "documented",
           source: SECURITY_SOURCE_ID,
         });
-        warnings.push(`${candidate.displayPath} was not read because its symlink escapes the Codex home`);
+        warnings.push(
+          `${candidate.displayPath} was not read because its symlink escapes the Codex home`,
+        );
         continue;
       }
       const raw = await readFile(candidate.readPath);
@@ -320,12 +343,20 @@ export async function traceCodex(options: CodexTraceOptions): Promise<TraceResul
       const loaded = await loadSelected(selected, undefined, sequence);
       decisions.push(loaded.decision);
       sequence += 1;
-      decisions.push(...selected.shadowed.map((item) => decisionForShadowed(item, selected, "user")));
+      decisions.push(
+        ...selected.shadowed.map((item) =>
+          decisionForShadowed(item, selected, "user"),
+        ),
+      );
       break;
     }
 
     if (selectedIndex === -1) {
-      const alreadyReported = new Set(decisions.filter((item) => item.kind === "user").map((item) => item.path));
+      const alreadyReported = new Set(
+        decisions
+          .filter((item) => item.kind === "user")
+          .map((item) => item.path),
+      );
       for (const candidate of existing) {
         if (!alreadyReported.has(candidate.displayPath)) {
           decisions.push({
@@ -346,7 +377,13 @@ export async function traceCodex(options: CodexTraceOptions): Promise<TraceResul
 
   const projectSelections: SelectedCandidate[] = [];
   for (const directory of pathChain(root, cwd)) {
-    const selected = await selectInDirectory(directory, names, root, root, "project");
+    const selected = await selectInDirectory(
+      directory,
+      names,
+      root,
+      root,
+      "project",
+    );
     if (selected) {
       projectSelections.push(selected);
     }
@@ -356,23 +393,35 @@ export async function traceCodex(options: CodexTraceOptions): Promise<TraceResul
   for (const selected of projectSelections) {
     const loaded = await loadSelected(selected, remaining, sequence);
     decisions.push(loaded.decision);
-    decisions.push(...selected.shadowed.map((item) => decisionForShadowed(item, selected, "project")));
+    decisions.push(
+      ...selected.shadowed.map((item) =>
+        decisionForShadowed(item, selected, "project"),
+      ),
+    );
     if (loaded.loaded) {
       sequence += 1;
       remaining -= loaded.consumed;
     }
     if (loaded.decision.status === "loaded-truncated") {
-      warnings.push(`${selected.displayPath} was truncated at the ${maxBytes}-byte project limit`);
+      warnings.push(
+        `${selected.displayPath} was truncated at the ${maxBytes}-byte project limit`,
+      );
     }
     if (loaded.decision.status === "skipped-security-boundary") {
-      warnings.push(`${selected.displayPath} was not read because its symlink escapes the project root`);
+      warnings.push(
+        `${selected.displayPath} was not read because its symlink escapes the project root`,
+      );
     }
   }
 
   const included = decisions.filter(
-    (decision) => decision.status === "loaded" || decision.status === "loaded-truncated",
+    (decision) =>
+      decision.status === "loaded" || decision.status === "loaded-truncated",
   );
-  const includedBytes = included.reduce((total, decision) => total + decision.bytesIncluded, 0);
+  const includedBytes = included.reduce(
+    (total, decision) => total + decision.bytesIncluded,
+    0,
+  );
 
   return {
     schemaVersion: 1,

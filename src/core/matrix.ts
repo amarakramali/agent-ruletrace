@@ -31,10 +31,7 @@ export async function traceMatrix(
         traces,
         (trace) => trace.summary.approximateTokens,
       ),
-      warningCount: sum(
-        traces,
-        (trace) => trace.summary.warnings.length,
-      ),
+      warningCount: sum(traces, (trace) => trace.summary.warnings.length),
     },
   };
 }

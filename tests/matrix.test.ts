@@ -22,7 +22,11 @@ async function fixture(): Promise<string> {
   return root;
 }
 
-async function put(root: string, relative: string, content: string): Promise<void> {
+async function put(
+  root: string,
+  relative: string,
+  content: string,
+): Promise<void> {
   const target = path.join(root, relative);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content, "utf8");
@@ -30,14 +34,18 @@ async function put(root: string, relative: string, content: string): Promise<voi
 
 afterEach(async () => {
   await Promise.all(
-    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+    temporaryRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
 describe("profile registry", () => {
   it("provides every implemented profile in stable CLI order", () => {
     expect(PROFILE_IDS).toEqual(["codex", "claude", "gemini", "copilot"]);
-    expect(PROFILE_REGISTRY.map((profile) => profile.metadata.id)).toEqual(PROFILE_IDS);
+    expect(PROFILE_REGISTRY.map((profile) => profile.metadata.id)).toEqual(
+      PROFILE_IDS,
+    );
     expect(isProfileId("gemini")).toBe(true);
     expect(isProfileId("cursor")).toBe(false);
   });
@@ -78,7 +86,11 @@ describe("profile matrix", () => {
     });
 
     expect(matrix.traces.map((trace) => trace.profile.id)).toEqual(PROFILE_IDS);
-    expect(matrix.traces.every((trace) => trace.inputs.target === matrix.inputs.target)).toBe(true);
+    expect(
+      matrix.traces.every(
+        (trace) => trace.inputs.target === matrix.inputs.target,
+      ),
+    ).toBe(true);
     expect(
       matrix.traces.map((trace) => ({
         id: trace.profile.id,

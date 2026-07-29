@@ -7,10 +7,18 @@ export class InputError extends Error {
 
 export function isWithin(parent: string, child: string): boolean {
   const relative = path.relative(parent, child);
-  return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
+  return (
+    relative === "" ||
+    (!relative.startsWith(`..${path.sep}`) &&
+      relative !== ".." &&
+      !path.isAbsolute(relative))
+  );
 }
 
-export async function canonicalDirectory(value: string, label: string): Promise<string> {
+export async function canonicalDirectory(
+  value: string,
+  label: string,
+): Promise<string> {
   const resolved = path.resolve(value);
   try {
     const info = await stat(resolved);
@@ -22,17 +30,24 @@ export async function canonicalDirectory(value: string, label: string): Promise<
     if (error instanceof InputError) {
       throw error;
     }
-    throw new InputError(`${label} does not exist or cannot be read: ${resolved}`);
+    throw new InputError(
+      `${label} does not exist or cannot be read: ${resolved}`,
+    );
   }
 }
 
-export async function canonicalTarget(value: string, cwd: string): Promise<string> {
+export async function canonicalTarget(
+  value: string,
+  cwd: string,
+): Promise<string> {
   const resolved = path.resolve(cwd, value);
   try {
     await access(resolved);
     return await realpath(resolved);
   } catch {
-    throw new InputError(`target does not exist or cannot be read: ${resolved}`);
+    throw new InputError(
+      `target does not exist or cannot be read: ${resolved}`,
+    );
   }
 }
 
@@ -72,7 +87,11 @@ export function pathChain(root: string, cwd: string): string[] {
   return chain;
 }
 
-export function displayPath(root: string, candidate: string, home?: string): string {
+export function displayPath(
+  root: string,
+  candidate: string,
+  home?: string,
+): string {
   if (isWithin(root, candidate)) {
     const relative = path.relative(root, candidate);
     return relative === "" ? "." : relative.split(path.sep).join("/");

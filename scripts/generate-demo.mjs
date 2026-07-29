@@ -8,15 +8,10 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const exampleRoot = path.join(
-  repositoryRoot,
-  "examples",
-  "mixed-agent-repo",
-);
+const exampleRoot = path.join(repositoryRoot, "examples", "mixed-agent-repo");
 const cliPath = path.join(repositoryRoot, "dist", "cli.js");
 const outputPath = path.join(repositoryRoot, "docs", "demo.svg");
-const command =
-  "$ ruletrace matrix src/api/users.ts --cwd .";
+const command = "$ ruletrace matrix src/api/users.ts --cwd .";
 
 const result = spawnSync(
   process.execPath,
@@ -50,8 +45,11 @@ if (result.status !== 0) {
   );
 }
 
-const stripAnsi = (value) =>
-  value.replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "");
+const ansiPattern = new RegExp(
+  `${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`,
+  "g",
+);
+const stripAnsi = (value) => value.replace(ansiPattern, "");
 const normalizeExamplePath = (value) =>
   value
     .split(exampleRoot)
@@ -78,8 +76,7 @@ const text = lines
     const fill =
       index === 0
         ? "#7ee787"
-        : line.startsWith("PROFILE") ||
-            line === "Loaded instruction paths"
+        : line.startsWith("PROFILE") || line === "Loaded instruction paths"
           ? "#79c0ff"
           : "#c9d1d9";
     return `<text x="28" y="${y}" fill="${fill}" style="white-space:pre">${escapeXml(line)}</text>`;

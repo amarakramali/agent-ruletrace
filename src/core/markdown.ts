@@ -19,9 +19,13 @@ export function parseRuleFrontmatter(content: string): ParsedRule {
   if (lines[0]?.trim() !== "---") {
     return {};
   }
-  const end = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  const end = lines.findIndex(
+    (line, index) => index > 0 && line.trim() === "---",
+  );
   if (end === -1) {
-    return { error: "frontmatter starts with --- but has no closing delimiter" };
+    return {
+      error: "frontmatter starts with --- but has no closing delimiter",
+    };
   }
 
   const document = parseDocument(lines.slice(1, end).join("\n"), {
@@ -43,13 +47,18 @@ export function parseRuleFrontmatter(content: string): ParsedRule {
   if (typeof rawPaths === "string") {
     return { paths: [rawPaths] };
   }
-  if (Array.isArray(rawPaths) && rawPaths.every((item) => typeof item === "string")) {
+  if (
+    Array.isArray(rawPaths) &&
+    rawPaths.every((item) => typeof item === "string")
+  ) {
     return { paths: rawPaths };
   }
   return { error: "frontmatter paths must be a string or an array of strings" };
 }
 
-export function parseCopilotFrontmatter(content: string): ParsedCopilotInstruction {
+export function parseCopilotFrontmatter(
+  content: string,
+): ParsedCopilotInstruction {
   if (!content.startsWith("---")) {
     return {};
   }
@@ -58,9 +67,13 @@ export function parseCopilotFrontmatter(content: string): ParsedCopilotInstructi
   if (lines[0]?.trim() !== "---") {
     return {};
   }
-  const end = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  const end = lines.findIndex(
+    (line, index) => index > 0 && line.trim() === "---",
+  );
   if (end === -1) {
-    return { error: "frontmatter starts with --- but has no closing delimiter" };
+    return {
+      error: "frontmatter starts with --- but has no closing delimiter",
+    };
   }
 
   const document = parseDocument(lines.slice(1, end).join("\n"), {

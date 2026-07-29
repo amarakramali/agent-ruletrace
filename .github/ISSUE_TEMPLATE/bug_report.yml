@@ -1,0 +1,74 @@
+name: Bug report
+description: Report incorrect discovery, output, packaging, or CLI behavior.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove secrets and private instruction text before sharing output.
+
+  - type: input
+    id: version
+    attributes:
+      label: Agent RuleTrace version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Profile
+      options:
+        - Codex
+        - Claude Code
+        - Gemini CLI
+        - GitHub Copilot CLI
+        - Matrix or packaging
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description:
+        Include the command, a minimal directory tree, and sanitized instruction
+        metadata.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description:
+        Prefer `--format json`; remove private paths and content first.
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "Windows 11, Node 24.18.0"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety check
+      options:
+        - label:
+            I removed credentials, private instructions, and identifying paths.
+          required: true

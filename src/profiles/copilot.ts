@@ -73,9 +73,7 @@ function shown(context: TraceContext, candidate: string): string {
   return displayPath(context.root, candidate, context.copilotHome);
 }
 
-function decisionKind(
-  family: InstructionFamily,
-): "user" | "project" | "rule" {
+function decisionKind(family: InstructionFamily): "user" | "project" | "rule" {
   if (family === "user-wide") {
     return "user";
   }
@@ -102,7 +100,7 @@ async function inspectCandidate(
     return undefined;
   }
 
-  let resolved = candidate;
+  let resolved: string;
   try {
     resolved = await realpath(candidate);
   } catch {
@@ -139,7 +137,10 @@ async function inspectCandidate(
   };
 }
 
-function blockCandidate(candidate: ExistingCandidate, context: TraceContext): void {
+function blockCandidate(
+  candidate: ExistingCandidate,
+  context: TraceContext,
+): void {
   context.decisions.push({
     path: candidate.shownPath,
     kind: decisionKind(candidate.family),
@@ -147,11 +148,14 @@ function blockCandidate(candidate: ExistingCandidate, context: TraceContext): vo
     status: "skipped-security-boundary",
     bytesAvailable: 0,
     bytesIncluded: 0,
-    reason: "instruction file symlink resolves outside the allowed discovery root",
+    reason:
+      "instruction file symlink resolves outside the allowed discovery root",
     confidence: "documented",
     source: SECURITY_SOURCE_ID,
   });
-  context.warnings.push(`${candidate.shownPath} was not read because it escapes the allowed root`);
+  context.warnings.push(
+    `${candidate.shownPath} was not read because it escapes the allowed root`,
+  );
 }
 
 function contentKey(content: string): string {
@@ -263,7 +267,8 @@ async function traceModular(
       status: "inapplicable",
       bytesAvailable: Buffer.byteLength(content),
       bytesIncluded: 0,
-      reason: "no applyTo glob is present, so the file is not applied automatically",
+      reason:
+        "no applyTo glob is present, so the file is not applied automatically",
       confidence: "documented",
       source: SOURCE_ID,
     });
@@ -341,7 +346,13 @@ async function traceModularDirectory(
       continue;
     }
     await traceCandidate(
-      await inspectCandidate(candidatePath, boundary, "modular", phase, context),
+      await inspectCandidate(
+        candidatePath,
+        boundary,
+        "modular",
+        phase,
+        context,
+      ),
       context,
     );
   }
@@ -353,7 +364,10 @@ async function traceStandardDirectory(
   context: TraceContext,
 ): Promise<void> {
   const candidates: Array<{ relative: string; family: InstructionFamily }> = [
-    { relative: path.join(".github", "copilot-instructions.md"), family: "repository-wide" },
+    {
+      relative: path.join(".github", "copilot-instructions.md"),
+      family: "repository-wide",
+    },
     { relative: "AGENTS.md", family: "agent" },
     { relative: "CLAUDE.md", family: "agent" },
     { relative: path.join(".claude", "CLAUDE.md"), family: "agent" },
@@ -361,13 +375,21 @@ async function traceStandardDirectory(
   ];
   for (const { relative, family } of candidates) {
     await traceCandidate(
-      await inspectCandidate(path.join(directory, relative), context.root, family, phase, context),
+      await inspectCandidate(
+        path.join(directory, relative),
+        context.root,
+        family,
+        phase,
+        context,
+      ),
       context,
     );
   }
 }
 
-export async function traceCopilot(options: CopilotTraceOptions): Promise<TraceResult> {
+export async function traceCopilot(
+  options: CopilotTraceOptions,
+): Promise<TraceResult> {
   const cwd = await canonicalDirectory(options.cwd, "cwd");
   const root = await canonicalDirectory(options.root, "root");
   if (!isWithin(root, cwd)) {
@@ -375,7 +397,9 @@ export async function traceCopilot(options: CopilotTraceOptions): Promise<TraceR
   }
   const target = await canonicalTarget(options.target, cwd);
   if (!isWithin(root, target)) {
-    throw new InputError(`target must be inside root: target=${target}, root=${root}`);
+    throw new InputError(
+      `target must be inside root: target=${target}, root=${root}`,
+    );
   }
 
   const includeUser = options.includeUser ?? false;
@@ -417,14 +441,20 @@ export async function traceCopilot(options: CopilotTraceOptions): Promise<TraceR
   const launchDirectories = pathChain(root, cwd);
   const launchSet = new Set(launchDirectories);
   const targetInfo = await lstat(target);
-  const targetDirectory = targetInfo.isDirectory() ? target : path.dirname(target);
+  const targetDirectory = targetInfo.isDirectory()
+    ? target
+    : path.dirname(target);
   const targetDirectories = pathChain(root, targetDirectory);
   const standardDirectories = [
     ...launchDirectories,
     ...targetDirectories.filter((directory) => !launchSet.has(directory)),
   ];
   for (const directory of standardDirectories) {
-    await traceStandardDirectory(directory, launchSet.has(directory) ? "startup" : "lazy", context);
+    await traceStandardDirectory(
+      directory,
+      launchSet.has(directory) ? "startup" : "lazy",
+      context,
+    );
   }
 
   const modularBases = new Set<string>([root, cwd]);
@@ -442,8 +472,13 @@ export async function traceCopilot(options: CopilotTraceOptions): Promise<TraceR
     );
   }
 
-  const included = context.decisions.filter((decision) => decision.status === "loaded");
-  const includedBytes = included.reduce((total, decision) => total + decision.bytesIncluded, 0);
+  const included = context.decisions.filter(
+    (decision) => decision.status === "loaded",
+  );
+  const includedBytes = included.reduce(
+    (total, decision) => total + decision.bytesIncluded,
+    0,
+  );
   return {
     schemaVersion: 1,
     toolVersion: "0.1.0",

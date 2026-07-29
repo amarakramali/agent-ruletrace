@@ -18,11 +18,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const fixtureSource = path.join(
-  repositoryRoot,
-  "examples",
-  "mixed-agent-repo",
-);
+const fixtureSource = path.join(repositoryRoot, "examples", "mixed-agent-repo");
 const npmCliPath = process.env.npm_execpath;
 assert(npmCliPath, "test:package must be launched through npm");
 
@@ -68,11 +64,21 @@ function runNpm(args, options = {}) {
 
 function assertSafeTarball(files) {
   const paths = files.map((file) => file.path);
-  assert(paths.includes("dist/cli.js"), "tarball must contain the executable bundle");
+  assert(
+    paths.includes("dist/cli.js"),
+    "tarball must contain the executable bundle",
+  );
   assert(paths.includes("dist/cli.d.ts"), "tarball must contain declarations");
-  assert(paths.includes("package.json"), "tarball must contain package metadata");
+  assert(
+    paths.includes("package.json"),
+    "tarball must contain package metadata",
+  );
   assert(paths.includes("README.md"), "tarball must contain the README");
   assert(paths.includes("LICENSE"), "tarball must contain the license");
+  assert(
+    paths.includes("docs/PROFILE_SOURCES.md"),
+    "tarball must contain generated profile-source metadata",
+  );
 
   const forbidden = paths.filter(
     (file) =>
@@ -83,7 +89,11 @@ function assertSafeTarball(files) {
       file.startsWith(".git/") ||
       file.endsWith(".log"),
   );
-  assert.deepEqual(forbidden, [], `tarball contains development-only files: ${forbidden}`);
+  assert.deepEqual(
+    forbidden,
+    [],
+    `tarball contains development-only files: ${forbidden}`,
+  );
 }
 
 const temporaryRoot = await mkdtemp(
@@ -98,7 +108,11 @@ try {
     temporaryRoot,
   ]);
   const packMetadata = parseJsonOutput(packResult, "npm pack");
-  assert.equal(packMetadata.length, 1, "npm pack must produce exactly one tarball");
+  assert.equal(
+    packMetadata.length,
+    1,
+    "npm pack must produce exactly one tarball",
+  );
   assertSafeTarball(packMetadata[0].files);
 
   const tarball = path.join(temporaryRoot, packMetadata[0].filename);
@@ -166,10 +180,7 @@ try {
   );
   const offlineEnvironment = {
     ...process.env,
-    NODE_OPTIONS: [
-      process.env.NODE_OPTIONS,
-      `--require=${denyNetworkPath}`,
-    ]
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, `--require=${denyNetworkPath}`]
       .filter(Boolean)
       .join(" "),
   };
@@ -194,6 +205,21 @@ try {
       .split(/\r?\n/)
       .map((line) => line.split("\t")[0]),
     ["codex", "claude", "gemini", "copilot"],
+  );
+  const profileCatalog = parseJsonOutput(
+    runCli(["profiles", "--format", "json"]),
+    "installed profiles command",
+  );
+  assert.deepEqual(
+    profileCatalog.profiles.map((profile) => profile.id),
+    ["codex", "claude", "gemini", "copilot"],
+  );
+  assert(
+    profileCatalog.profiles.every(
+      (profile) =>
+        profile.verifiedOn === "2026-07-29" && profile.sources.length > 0,
+    ),
+    "every packaged profile must expose its verification date and sources",
   );
 
   const explain = parseJsonOutput(
@@ -261,12 +287,7 @@ try {
   );
 
   await writeFile(
-    path.join(
-      fixtureRoot,
-      ".github",
-      "instructions",
-      "broken.instructions.md",
-    ),
+    path.join(fixtureRoot, ".github", "instructions", "broken.instructions.md"),
     "---\napplyTo: [\n---\nbroken",
     "utf8",
   );
@@ -280,7 +301,7 @@ try {
     await readFile(path.join(installedPackage, "package.json"), "utf8"),
   );
   assert.equal(installedManifest.bin.ruletrace, "./dist/cli.js");
-  assert.equal(installedManifest.engines.node, ">=20");
+  assert.equal(installedManifest.engines.node, ">=22");
 
   process.stdout.write(
     `Package E2E passed: ${packMetadata[0].filename}, ${packMetadata[0].size} bytes, offline CLI, exit codes 0/1/2.\n`,

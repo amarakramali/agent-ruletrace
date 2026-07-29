@@ -13,7 +13,11 @@ async function fixture(): Promise<string> {
   return root;
 }
 
-async function put(root: string, relative: string, content: string): Promise<void> {
+async function put(
+  root: string,
+  relative: string,
+  content: string,
+): Promise<void> {
   const target = path.join(root, relative);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content, "utf8");
@@ -21,7 +25,9 @@ async function put(root: string, relative: string, content: string): Promise<voi
 
 afterEach(async () => {
   await Promise.all(
-    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+    temporaryRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
@@ -47,7 +53,12 @@ describe("Claude Code profile", () => {
       })),
     ).toEqual([
       { file: "CLAUDE.md", phase: "startup", status: "loaded", sequence: 1 },
-      { file: ".claude/CLAUDE.md", phase: "startup", status: "loaded", sequence: 2 },
+      {
+        file: ".claude/CLAUDE.md",
+        phase: "startup",
+        status: "loaded",
+        sequence: 2,
+      },
       {
         file: "packages/app/CLAUDE.local.md",
         phase: "startup",
@@ -72,9 +83,17 @@ describe("Claude Code profile", () => {
       ".claude/rules/api.md",
       '---\npaths:\n  - "src/api/**/*.ts"\n---\n# API',
     );
-    await put(root, ".claude/rules/docs.md", '---\npaths: "docs/**"\n---\n# Docs');
+    await put(
+      root,
+      ".claude/rules/docs.md",
+      '---\npaths: "docs/**"\n---\n# Docs',
+    );
 
-    const trace = await traceClaude({ root, cwd: root, target: "src/api/user.ts" });
+    const trace = await traceClaude({
+      root,
+      cwd: root,
+      target: "src/api/user.ts",
+    });
 
     expect(
       trace.decisions.map(({ path: file, phase, status, matchedPattern }) => ({
@@ -121,7 +140,10 @@ describe("Claude Code profile", () => {
     expect(trace.decisions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: "CLAUDE.md", status: "excluded" }),
-        expect.objectContaining({ path: ".claude/rules/testing.md", status: "loaded" }),
+        expect.objectContaining({
+          path: ".claude/rules/testing.md",
+          status: "loaded",
+        }),
       ]),
     );
   });
@@ -144,12 +166,16 @@ describe("Claude Code profile", () => {
 
     const trace = await traceClaude({ root, cwd: root, target: "target.ts" });
 
-    expect(trace.decisions.map(({ path: file, status }) => ({ file, status }))).toEqual([
+    expect(
+      trace.decisions.map(({ path: file, status }) => ({ file, status })),
+    ).toEqual([
       { file: "CLAUDE.md", status: "loaded" },
       { file: "docs/base.md", status: "loaded" },
       { file: "CLAUDE.md", status: "import-cycle" },
     ]);
-    expect(trace.summary.warnings).toEqual(["CLAUDE.md closes an import cycle"]);
+    expect(trace.summary.warnings).toEqual([
+      "CLAUDE.md closes an import cycle",
+    ]);
   });
 
   it("reports invalid rule frontmatter without losing the rest of the trace", async () => {
@@ -163,7 +189,10 @@ describe("Claude Code profile", () => {
     expect(trace.decisions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: "CLAUDE.md", status: "loaded" }),
-        expect.objectContaining({ path: ".claude/rules/broken.md", status: "parse-error" }),
+        expect.objectContaining({
+          path: ".claude/rules/broken.md",
+          status: "parse-error",
+        }),
       ]),
     );
     expect(trace.summary.warnings).toEqual([

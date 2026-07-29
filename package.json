@@ -8,16 +8,23 @@
   },
   "files": [
     "dist",
+    "docs/PROFILE_SOURCES.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "tsup src/cli.ts --format esm --dts --clean",
+    "docs:profiles": "npm run build && node scripts/generate-profile-sources.mjs && prettier --write docs/PROFILE_SOURCES.md",
     "demo": "npm run build && node scripts/generate-demo.mjs",
+    "audit": "npm audit --omit=dev --audit-level=high",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:package": "node scripts/test-package.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test && npm run build && npm run test:package"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run test:package && npm run check:secrets"
   },
   "keywords": [
     "coding-agents",
@@ -41,7 +48,7 @@
   },
   "homepage": "https://github.com/amarakramali/agent-ruletrace#readme",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "commander": "^14.0.0",
@@ -50,9 +57,13 @@
     "yaml": "^2.8.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^24.1.0",
+    "eslint": "^10.8.0",
+    "prettier": "^3.9.6",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^3.2.4"
   },
   "overrides": {

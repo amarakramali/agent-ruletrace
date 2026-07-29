@@ -7,13 +7,19 @@ import { traceCopilot } from "../src/profiles/copilot.js";
 const temporaryRoots: string[] = [];
 
 async function fixture(): Promise<string> {
-  const root = await mkdtemp(path.join(os.tmpdir(), "agent-ruletrace-copilot-"));
+  const root = await mkdtemp(
+    path.join(os.tmpdir(), "agent-ruletrace-copilot-"),
+  );
   temporaryRoots.push(root);
   await mkdir(path.join(root, ".git"));
   return root;
 }
 
-async function put(root: string, relative: string, content: string): Promise<void> {
+async function put(
+  root: string,
+  relative: string,
+  content: string,
+): Promise<void> {
   const target = path.join(root, relative);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content, "utf8");
@@ -21,7 +27,9 @@ async function put(root: string, relative: string, content: string): Promise<voi
 
 afterEach(async () => {
   await Promise.all(
-    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+    temporaryRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
@@ -52,8 +60,16 @@ describe("GitHub Copilot CLI profile", () => {
         .filter((decision) => decision.status === "loaded")
         .map(({ path: file, phase, sequence }) => ({ file, phase, sequence })),
     ).toEqual([
-      { file: "<home>/copilot-instructions.md", phase: "startup", sequence: undefined },
-      { file: ".github/copilot-instructions.md", phase: "startup", sequence: undefined },
+      {
+        file: "<home>/copilot-instructions.md",
+        phase: "startup",
+        sequence: undefined,
+      },
+      {
+        file: ".github/copilot-instructions.md",
+        phase: "startup",
+        sequence: undefined,
+      },
       { file: "AGENTS.md", phase: "startup", sequence: undefined },
       { file: "packages/CLAUDE.md", phase: "startup", sequence: undefined },
       {
@@ -61,7 +77,11 @@ describe("GitHub Copilot CLI profile", () => {
         phase: "startup",
         sequence: undefined,
       },
-      { file: "packages/app/src/GEMINI.md", phase: "lazy", sequence: undefined },
+      {
+        file: "packages/app/src/GEMINI.md",
+        phase: "lazy",
+        sequence: undefined,
+      },
     ]);
   });
 
@@ -78,9 +98,17 @@ describe("GitHub Copilot CLI profile", () => {
       ".github/instructions/docs.instructions.md",
       '---\napplyTo: "docs/**"\n---\nDocs',
     );
-    await put(root, ".github/instructions/manual.instructions.md", "# Manual only");
+    await put(
+      root,
+      ".github/instructions/manual.instructions.md",
+      "# Manual only",
+    );
 
-    const trace = await traceCopilot({ root, cwd: root, target: "src/api/user.ts" });
+    const trace = await traceCopilot({
+      root,
+      cwd: root,
+      target: "src/api/user.ts",
+    });
 
     expect(
       trace.decisions.map(({ path: file, status, matchedPattern }) => ({
@@ -152,7 +180,9 @@ describe("GitHub Copilot CLI profile", () => {
       copilotHome,
     });
 
-    expect(trace.decisions.map(({ path: file, status }) => ({ file, status }))).toEqual([
+    expect(
+      trace.decisions.map(({ path: file, status }) => ({ file, status })),
+    ).toEqual([
       { file: "<home>/copilot-instructions.md", status: "loaded" },
       { file: ".github/copilot-instructions.md", status: "shadowed" },
       { file: "AGENTS.md", status: "shadowed" },
@@ -176,7 +206,10 @@ describe("GitHub Copilot CLI profile", () => {
       copilotHome,
     });
 
-    expect(trace.decisions.map(({ status }) => status)).toEqual(["loaded", "loaded"]);
+    expect(trace.decisions.map(({ status }) => status)).toEqual([
+      "loaded",
+      "loaded",
+    ]);
     expect(trace.summary.includedFiles).toBe(2);
   });
 

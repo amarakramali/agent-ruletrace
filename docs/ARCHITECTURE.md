@@ -31,8 +31,8 @@ and see:
 
 - the resolved project root, launch directory, and target;
 - every candidate instruction file encountered;
-- whether it is loaded eagerly, loaded lazily, path-matched, ignored,
-  shadowed, excluded, or outside the simulated scope;
+- whether it is loaded eagerly, loaded lazily, path-matched, ignored, shadowed,
+  excluded, or outside the simulated scope;
 - the documented reason and source for each decision;
 - guaranteed order/precedence and explicitly marked uncertainty;
 - included bytes and a clearly labeled approximate token count.
@@ -61,12 +61,12 @@ npx agent-ruletrace matrix src/api/users.ts --cwd .
 
 ### Client profiles
 
-| Profile | v0.1 behavior modeled |
-| --- | --- |
-| Codex | Project-root detection, root-to-cwd walk, override/default/fallback selection, global selection, merge order, empty-file skipping, and byte-cap truncation. |
-| Claude Code | Ancestor launch context, lazy descendant `CLAUDE.md` loading for the target, `CLAUDE.local.md`, `.claude/rules/**/*.md`, `paths` matching, exclusions, and import discovery up to the documented depth. |
-| Gemini CLI | Global/workspace context, configured context filenames, just-in-time target ancestry, imports, and duplicate-source reporting. |
-| GitHub Copilot | Repository-wide instructions, applicable `.instructions.md` files and `applyTo` globs, agent instruction candidates, and documented precedence tiers. |
+| Profile        | v0.1 behavior modeled                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex          | Project-root detection, root-to-cwd walk, override/default/fallback selection, global selection, merge order, empty-file skipping, and byte-cap truncation.                                             |
+| Claude Code    | Ancestor launch context, lazy descendant `CLAUDE.md` loading for the target, `CLAUDE.local.md`, `.claude/rules/**/*.md`, `paths` matching, exclusions, and import discovery up to the documented depth. |
+| Gemini CLI     | Global/workspace context, configured context filenames, just-in-time target ancestry, imports, and duplicate-source reporting.                                                                          |
+| GitHub Copilot | Repository-wide instructions, applicable `.instructions.md` files and `applyTo` globs, agent instruction candidates, and documented precedence tiers.                                                   |
 
 Each profile returns a confidence marker:
 
@@ -99,9 +99,9 @@ decisions[] {
 summary { includedFiles, includedBytes, approximateTokens, warnings[] }
 ```
 
-JSON paths are normalized to `/` and repository-relative wherever possible.
-User paths are replaced with `<home>` unless `--reveal-absolute-paths` is
-explicitly passed.
+JSON paths are normalized to `/` and repository-relative wherever possible. User
+paths are replaced with `<home>` unless `--reveal-absolute-paths` is explicitly
+passed.
 
 ## Non-goals for v0.1
 
@@ -180,8 +180,8 @@ examples/
 2. Reject inputs that violate the trust boundary or are inconsistent.
 3. Load only the selected profile and explicitly provided settings.
 4. Inventory candidate files without following directory symlinks.
-5. Parse only bounded metadata needed by the profile:
-   frontmatter, supported settings keys, and import references.
+5. Parse only bounded metadata needed by the profile: frontmatter, supported
+   settings keys, and import references.
 6. Evaluate client-specific discovery and path matching.
 7. Emit a decision for every encountered candidate, including exclusions.
 8. Normalize paths and attach the primary source for every behavior rule.
@@ -191,7 +191,8 @@ No network request occurs in this flow.
 
 ## Technology choices
 
-- Node.js 20 or newer and TypeScript in strict mode.
+- A supported Node.js LTS release (Node 22 or newer) and TypeScript in strict
+  mode.
 - `commander` for a predictable CLI contract.
 - `minimatch` for documented glob behavior.
 - `yaml` for safe, non-executing frontmatter/settings parsing.
@@ -245,19 +246,19 @@ runtime metadata cannot drift independently.
 
 ## Failure behavior
 
-| Failure | Behavior |
-| --- | --- |
-| Target does not exist | Exit 2 with the resolved path and correction hint. |
-| Cwd is outside root | Exit 2; require an explicit consistent root/cwd pair. |
-| Target is outside root | Exit 2 unless it is an explicitly supported user-scope source. |
-| No instruction files | Exit 0 with an empty trace and suggested candidate locations. |
-| Invalid YAML/frontmatter | Keep tracing other files, mark the file `parse-error`, warn, and exit 1. |
-| Damaged settings file | Do not guess; report the affected profile as indeterminate and exit 1. |
-| Import cycle/depth overflow | Record the stopped edge, emit a warning, and exit 1. |
-| Symlink escapes root | Record `skipped-security-boundary`, do not read it, and exit 1. |
-| Unsupported host feature | Record `unsupported` or `host-dependent`; do not fabricate context. |
-| Unknown client | Exit 2 and print the supported profile list. |
-| Unreadable file | Record the OS error without file contents and exit 1. |
+| Failure                     | Behavior                                                                 |
+| --------------------------- | ------------------------------------------------------------------------ |
+| Target does not exist       | Exit 2 with the resolved path and correction hint.                       |
+| Cwd is outside root         | Exit 2; require an explicit consistent root/cwd pair.                    |
+| Target is outside root      | Exit 2 unless it is an explicitly supported user-scope source.           |
+| No instruction files        | Exit 0 with an empty trace and suggested candidate locations.            |
+| Invalid YAML/frontmatter    | Keep tracing other files, mark the file `parse-error`, warn, and exit 1. |
+| Damaged settings file       | Do not guess; report the affected profile as indeterminate and exit 1.   |
+| Import cycle/depth overflow | Record the stopped edge, emit a warning, and exit 1.                     |
+| Symlink escapes root        | Record `skipped-security-boundary`, do not read it, and exit 1.          |
+| Unsupported host feature    | Record `unsupported` or `host-dependent`; do not fabricate context.      |
+| Unknown client              | Exit 2 and print the supported profile list.                             |
+| Unreadable file             | Record the OS error without file contents and exit 1.                    |
 
 Exit codes:
 
@@ -296,7 +297,7 @@ Exit codes:
 - Snapshot text output and schema-validate JSON output.
 - Build and install `npm pack` output into a clean temporary project.
 - Execute every README quickstart command in CI.
-- Test Node 20 and current LTS on Ubuntu, Windows, and macOS.
+- Test Node 22 and Node 24 LTS on Ubuntu, Windows, and macOS.
 - Verify `npm audit --omit=dev`, secret scan, lint, typecheck, tests, and build.
 
 ### Manual validation
@@ -336,8 +337,8 @@ Before publication:
 2. Profile sources and verification dates are generated and reviewed.
 3. README covers problem, audience, demo, installation, quickstart, processed
    data, privacy, limitations, and contributing.
-4. License, changelog, contributing guide, security policy, code of conduct,
-   CI, issue templates, and release notes exist.
+4. License, changelog, contributing guide, security policy, code of conduct, CI,
+   issue templates, and release notes exist.
 5. Repository description and topics are prepared.
 
 Release flow:

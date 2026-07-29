@@ -100,7 +100,9 @@ function normalizeNames(raw: string[]): { names?: string[]; error?: string } {
       normalized === ".." ||
       normalized.startsWith(`..${path.sep}`)
     ) {
-      return { error: `context filename escapes its discovery directory: ${trimmed}` };
+      return {
+        error: `context filename escapes its discovery directory: ${trimmed}`,
+      };
     }
     if (!names.includes(normalized)) {
       names.push(normalized);
@@ -151,15 +153,21 @@ async function readSetting(
     const rawNames =
       typeof fileName === "string"
         ? [fileName]
-        : Array.isArray(fileName) && fileName.every((item) => typeof item === "string")
+        : Array.isArray(fileName) &&
+            fileName.every((item) => typeof item === "string")
           ? fileName
           : undefined;
     if (!rawNames) {
-      throw new Error("context.fileName must be a string or an array of strings");
+      throw new Error(
+        "context.fileName must be a string or an array of strings",
+      );
     }
     const normalized = normalizeNames(rawNames);
     if (!normalized.names || normalized.names.length === 0) {
-      throw new Error(normalized.error ?? "context.fileName must contain at least one filename");
+      throw new Error(
+        normalized.error ??
+          "context.fileName must contain at least one filename",
+      );
     }
     return {
       shownPath: shown(context, settingsPath),
@@ -178,7 +186,9 @@ async function readSetting(
       confidence: "documented",
       source: SOURCE_ID,
     });
-    context.warnings.push(`${shown(context, settingsPath)} could not be parsed`);
+    context.warnings.push(
+      `${shown(context, settingsPath)} could not be parsed`,
+    );
     return undefined;
   }
 }
@@ -222,7 +232,7 @@ async function inspectCandidate(
     return undefined;
   }
 
-  let resolved = candidate;
+  let resolved: string;
   try {
     resolved = await realpath(candidate);
   } catch {
@@ -274,7 +284,9 @@ function blockCandidate(
     confidence: "documented",
     source: SECURITY_SOURCE_ID,
   });
-  context.warnings.push(`${candidate.shownPath} was not read because it escapes the allowed root`);
+  context.warnings.push(
+    `${candidate.shownPath} was not read because it escapes the allowed root`,
+  );
 }
 
 async function traceImports(
@@ -298,14 +310,21 @@ async function traceImports(
         confidence: "documented",
         source: IMPORT_SOURCE_ID,
       });
-      context.warnings.push(`${shown(context, sourcePath)} contains a blocked URL import`);
+      context.warnings.push(
+        `${shown(context, sourcePath)} contains a blocked URL import`,
+      );
       continue;
     }
 
     const unresolved = path.isAbsolute(specifier)
       ? specifier
       : path.resolve(path.dirname(sourcePath), specifier);
-    const candidate = await inspectCandidate(unresolved, boundary, "import", context);
+    const candidate = await inspectCandidate(
+      unresolved,
+      boundary,
+      "import",
+      context,
+    );
     if (!candidate) {
       context.decisions.push({
         path: shown(context, unresolved),
@@ -318,7 +337,9 @@ async function traceImports(
         confidence: "documented",
         source: IMPORT_SOURCE_ID,
       });
-      context.warnings.push(`${shown(context, sourcePath)} imports a missing file: ${specifier}`);
+      context.warnings.push(
+        `${shown(context, sourcePath)} imports a missing file: ${specifier}`,
+      );
       continue;
     }
     if (!candidate.safe) {
@@ -342,7 +363,9 @@ async function traceImports(
         confidence: "documented",
         source: IMPORT_SOURCE_ID,
       });
-      context.warnings.push(`${candidate.shownPath} exceeds the five-level import limit`);
+      context.warnings.push(
+        `${candidate.shownPath} exceeds the five-level import limit`,
+      );
       continue;
     }
     if (chain.has(candidate.readPath)) {
@@ -419,7 +442,8 @@ async function traceContextFile(
     return;
   }
 
-  const previous = candidate.identity && context.loadedIdentities.get(candidate.identity);
+  const previous =
+    candidate.identity && context.loadedIdentities.get(candidate.identity);
   if (previous) {
     context.decisions.push({
       path: candidate.shownPath,
@@ -490,14 +514,21 @@ async function traceDirectory(
   context: TraceContext,
 ): Promise<void> {
   for (const name of context.names) {
-    const candidate = await inspectCandidate(path.join(directory, name), boundary, kind, context);
+    const candidate = await inspectCandidate(
+      path.join(directory, name),
+      boundary,
+      kind,
+      context,
+    );
     if (candidate) {
       await traceContextFile(candidate, boundary, phase, context);
     }
   }
 }
 
-export async function traceGemini(options: GeminiTraceOptions): Promise<TraceResult> {
+export async function traceGemini(
+  options: GeminiTraceOptions,
+): Promise<TraceResult> {
   const cwd = await canonicalDirectory(options.cwd, "cwd");
   const root = await canonicalDirectory(options.root, "root");
   if (!isWithin(root, cwd)) {
@@ -505,7 +536,9 @@ export async function traceGemini(options: GeminiTraceOptions): Promise<TraceRes
   }
   const target = await canonicalTarget(options.target, cwd);
   if (!isWithin(root, target)) {
-    throw new InputError(`target must be inside root: target=${target}, root=${root}`);
+    throw new InputError(
+      `target must be inside root: target=${target}, root=${root}`,
+    );
   }
 
   const includeUser = options.includeUser ?? false;
@@ -528,7 +561,11 @@ export async function traceGemini(options: GeminiTraceOptions): Promise<TraceRes
   };
 
   const userSetting = geminiHome
-    ? await readSetting(path.join(geminiHome, "settings.json"), geminiHome, context)
+    ? await readSetting(
+        path.join(geminiHome, "settings.json"),
+        geminiHome,
+        context,
+      )
     : undefined;
   const projectSetting = await readSetting(
     path.join(root, ".gemini", "settings.json"),
@@ -539,10 +576,13 @@ export async function traceGemini(options: GeminiTraceOptions): Promise<TraceRes
     ? normalizeNames(options.contextFilenames)
     : undefined;
   if (explicit?.error || (explicit && explicit.names?.length === 0)) {
-    throw new InputError(explicit.error ?? "context filename list must not be empty");
+    throw new InputError(
+      explicit.error ?? "context filename list must not be empty",
+    );
   }
 
-  const configured = explicit?.names ?? projectSetting?.names ?? userSetting?.names ?? [];
+  const configured =
+    explicit?.names ?? projectSetting?.names ?? userSetting?.names ?? [];
   context.names = [...new Set([...configured, DEFAULT_CONTEXT_FILENAME])];
 
   if (userSetting) {
@@ -550,7 +590,9 @@ export async function traceGemini(options: GeminiTraceOptions): Promise<TraceRes
       settingDecision(
         userSetting,
         explicit === undefined && projectSetting === undefined,
-        explicit ? "the command line" : projectSetting?.shownPath ?? "a higher-precedence source",
+        explicit
+          ? "the command line"
+          : (projectSetting?.shownPath ?? "a higher-precedence source"),
       ),
     );
   }
@@ -572,7 +614,9 @@ export async function traceGemini(options: GeminiTraceOptions): Promise<TraceRes
   }
 
   const targetInfo = await lstat(target);
-  const targetDirectory = targetInfo.isDirectory() ? target : path.dirname(target);
+  const targetDirectory = targetInfo.isDirectory()
+    ? target
+    : path.dirname(target);
   for (const directory of pathChain(root, targetDirectory)) {
     await traceDirectory(directory, root, "project", "lazy", context);
   }
@@ -580,7 +624,10 @@ export async function traceGemini(options: GeminiTraceOptions): Promise<TraceRes
   const included = context.decisions.filter(
     (decision) => decision.status === "loaded" && decision.kind !== "settings",
   );
-  const includedBytes = included.reduce((total, decision) => total + decision.bytesIncluded, 0);
+  const includedBytes = included.reduce(
+    (total, decision) => total + decision.bytesIncluded,
+    0,
+  );
   return {
     schemaVersion: 1,
     toolVersion: "0.1.0",

@@ -14,7 +14,11 @@ async function fixture(): Promise<string> {
   return root;
 }
 
-async function put(root: string, relative: string, content: string): Promise<void> {
+async function put(
+  root: string,
+  relative: string,
+  content: string,
+): Promise<void> {
   const target = path.join(root, relative);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content, "utf8");
@@ -22,7 +26,9 @@ async function put(root: string, relative: string, content: string): Promise<voi
 
 afterEach(async () => {
   await Promise.all(
-    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+    temporaryRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
@@ -45,7 +51,11 @@ describe("Codex profile", () => {
     });
 
     expect(
-      trace.decisions.map(({ path: file, status, sequence }) => ({ file, status, sequence })),
+      trace.decisions.map(({ path: file, status, sequence }) => ({
+        file,
+        status,
+        sequence,
+      })),
     ).toEqual([
       { file: "AGENTS.md", status: "loaded", sequence: 1 },
       { file: "services/AGENTS.override.md", status: "loaded", sequence: 2 },
@@ -63,7 +73,9 @@ describe("Codex profile", () => {
 
     const trace = await traceCodex({ root, cwd: root, target: "target.ts" });
 
-    expect(trace.decisions.map(({ path: file, status }) => ({ file, status }))).toEqual([
+    expect(
+      trace.decisions.map(({ path: file, status }) => ({ file, status })),
+    ).toEqual([
       { file: "AGENTS.override.md", status: "skipped-empty" },
       { file: "AGENTS.md", status: "shadowed" },
     ]);
@@ -85,8 +97,18 @@ describe("Codex profile", () => {
       codexHome,
     });
 
-    expect(trace.decisions.map(({ path: file, status, sequence }) => ({ file, status, sequence }))).toEqual([
-      { file: "<home>/AGENTS.override.md", status: "skipped-empty", sequence: undefined },
+    expect(
+      trace.decisions.map(({ path: file, status, sequence }) => ({
+        file,
+        status,
+        sequence,
+      })),
+    ).toEqual([
+      {
+        file: "<home>/AGENTS.override.md",
+        status: "skipped-empty",
+        sequence: undefined,
+      },
       { file: "<home>/AGENTS.md", status: "loaded", sequence: 1 },
     ]);
     expect(trace.summary.includedFiles).toBe(1);
@@ -100,9 +122,19 @@ describe("Codex profile", () => {
     await put(root, "child/AGENTS.md", "abcdef");
     await put(root, "child/target.ts", "");
 
-    const trace = await traceCodex({ root, cwd, target: "target.ts", maxBytes: 8 });
+    const trace = await traceCodex({
+      root,
+      cwd,
+      target: "target.ts",
+      maxBytes: 8,
+    });
 
-    expect(trace.decisions.map(({ status, bytesIncluded }) => ({ status, bytesIncluded }))).toEqual([
+    expect(
+      trace.decisions.map(({ status, bytesIncluded }) => ({
+        status,
+        bytesIncluded,
+      })),
+    ).toEqual([
       { status: "loaded", bytesIncluded: 6 },
       { status: "loaded-truncated", bytesIncluded: 2 },
     ]);
@@ -131,7 +163,11 @@ describe("Codex profile", () => {
     await put(root, "target.ts", "");
 
     try {
-      await symlink(path.join(outside, "secret.md"), path.join(root, "AGENTS.md"), "file");
+      await symlink(
+        path.join(outside, "secret.md"),
+        path.join(root, "AGENTS.md"),
+        "file",
+      );
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "EPERM") {
         return;

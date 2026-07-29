@@ -41,11 +41,16 @@ export function renderText(trace: TraceResult): string {
     lines.push("No supported instruction files were found.");
   } else {
     for (const decision of trace.decisions) {
-      const order = decision.sequence === undefined ? " -" : String(decision.sequence).padStart(2, " ");
+      const order =
+        decision.sequence === undefined
+          ? " -"
+          : String(decision.sequence).padStart(2, " ");
       lines.push(`${order}  ${statusLabel(decision)} ${decision.path}`);
       lines.push(`    ${decision.reason}`);
       if (decision.bytesIncluded > 0) {
-        lines.push(`    ${decision.bytesIncluded}/${decision.bytesAvailable} bytes included`);
+        lines.push(
+          `    ${decision.bytesIncluded}/${decision.bytesAvailable} bytes included`,
+        );
       }
     }
   }

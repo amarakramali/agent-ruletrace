@@ -62,8 +62,7 @@ profiles in the tool will cite these sources and carry a “verified on” date.
 
 1. “Configuration Smells in AGENTS.md Files” reports widespread context and
    scope problems in real repositories, including lint leakage and context
-   bloat:
-   https://arxiv.org/abs/2606.15828
+   bloat: https://arxiv.org/abs/2606.15828
 2. A team discussion describes maintaining duplicated `CLAUDE.md` and
    `AGENTS.md` files across tools:
    https://www.reddit.com/r/mcp/comments/1ur0bj4/how_does_your_team_keep_claudemdagentsmd_files/
@@ -95,13 +94,10 @@ The generic linting and synchronization space is crowded:
 - agnix validates hundreds of rules across agent configuration formats:
   https://github.com/agent-sh/agnix
 - ctxlint checks paths, commands, staleness, contradictions, frontmatter,
-  tokens, secrets, and session data:
-  https://github.com/YawLabs/ctxlint
-- AgentLinter, context-drift, and instrlint provide additional linting,
-  drift, and consistency checks:
-  https://github.com/seojoonkim/agentlinter
-  https://github.com/geekiyer/context-drift
-  https://github.com/jed1978/instrlint
+  tokens, secrets, and session data: https://github.com/YawLabs/ctxlint
+- AgentLinter, context-drift, and instrlint provide additional linting, drift,
+  and consistency checks: https://github.com/seojoonkim/agentlinter
+  https://github.com/geekiyer/context-drift https://github.com/jed1978/instrlint
 - Agent Context Map is a useful static, source-linked comparison of instruction
   locations, but currently covers Codex behavior rather than providing an
   executable, target-path simulation:
@@ -139,22 +135,22 @@ User/home instructions are excluded unless explicitly requested.
 
 ## Opportunity score
 
-| Criterion | Points | Rationale |
-| --- | ---: | --- |
-| Demand | 18/20 | Four major clients expose overlapping repository instruction systems; multi-client repositories are increasingly common. |
-| Trend speed | 14/15 | Agent harnesses, multi-agent workflows, and instruction-file research are active in July 2026. |
-| User pain | 16/20 | Wrong scope silently changes agent behavior and wastes debugging time, although it is not always blocking. |
-| Competition gap | 11/15 | Linters and reference tables are strong, but target-path provenance remains underserved. |
-| Feasibility | 9/10 | The MVP is read-only filesystem analysis with documented rules and bounded parsing. |
-| Visibility | 9/10 | A terminal trace and four-client matrix make the value immediately demonstrable. |
-| Extension potential | 4/5 | Additional profiles, editor integration, and CI drift detection are natural later steps. |
-| Profile fit | 5/5 | Demonstrates developer tooling, cross-platform parsing, testing, and product judgment. |
-| **Total** | **86/100** | **Selected.** |
+| Criterion           |     Points | Rationale                                                                                                                |
+| ------------------- | ---------: | ------------------------------------------------------------------------------------------------------------------------ |
+| Demand              |      18/20 | Four major clients expose overlapping repository instruction systems; multi-client repositories are increasingly common. |
+| Trend speed         |      14/15 | Agent harnesses, multi-agent workflows, and instruction-file research are active in July 2026.                           |
+| User pain           |      16/20 | Wrong scope silently changes agent behavior and wastes debugging time, although it is not always blocking.               |
+| Competition gap     |      11/15 | Linters and reference tables are strong, but target-path provenance remains underserved.                                 |
+| Feasibility         |       9/10 | The MVP is read-only filesystem analysis with documented rules and bounded parsing.                                      |
+| Visibility          |       9/10 | A terminal trace and four-client matrix make the value immediately demonstrable.                                         |
+| Extension potential |        4/5 | Additional profiles, editor integration, and CI drift detection are natural later steps.                                 |
+| Profile fit         |        5/5 | Demonstrates developer tooling, cross-platform parsing, testing, and product judgment.                                   |
+| **Total**           | **86/100** | **Selected.**                                                                                                            |
 
 ## Ideas rejected during this cycle
 
-- MCP schema diffing: exact, maintained solutions such as `mcp-diff` and
-  schema snapshot tools already exist.
+- MCP schema diffing: exact, maintained solutions such as `mcp-diff` and schema
+  snapshot tools already exist.
 - Worktree runtime isolation: `workz`, `falq`, `portree`, `portman-cli`, and
   related tools already address ports, processes, and environment isolation.
 - Agent skill security scanning: Cisco, Snyk, and several dedicated open-source
@@ -176,4 +172,3 @@ The first release should be reconsidered if:
 - a maintained exact competitor is found before publication;
 - deterministic output requires executing untrusted repository code; or
 - the profile update burden proves disproportionate to the tool's value.
-
