@@ -83,3 +83,12 @@ export interface ClaudeTraceOptions {
   claudeHome?: string;
   excludes?: string[];
 }
+
+export interface GeminiTraceOptions {
+  root: string;
+  cwd: string;
+  target: string;
+  includeUser?: boolean;
+  geminiHome?: string;
+  contextFilenames?: string[];
+}

@@ -5,6 +5,7 @@ import process from "node:process";
 import { findGitRoot, InputError } from "./core/paths.js";
 import { CLAUDE_PROFILE, traceClaude } from "./profiles/claude.js";
 import { CODEX_PROFILE, traceCodex } from "./profiles/codex.js";
+import { GEMINI_PROFILE, traceGemini } from "./profiles/gemini.js";
 import { renderText } from "./render/text.js";
 
 interface ExplainOptions {
@@ -15,8 +16,10 @@ interface ExplainOptions {
   includeUser: boolean;
   codexHome?: string;
   claudeHome?: string;
+  geminiHome?: string;
   fallback?: string[];
   exclude?: string[];
+  contextFile?: string[];
   maxBytes: number;
 }
 
@@ -43,20 +46,31 @@ export function buildProgram(): Command {
     .command("explain")
     .description("Trace instruction discovery for one client and target path.")
     .argument("<target>", "target file or directory, relative to --cwd")
-    .requiredOption("--client <client>", "client profile: codex or claude")
+    .requiredOption("--client <client>", "client profile: codex, claude, or gemini")
     .option("--root <path>", "project root; defaults to the nearest Git root")
     .option("--cwd <path>", "simulated client launch directory", process.cwd())
     .option("--format <format>", "output format: text or json", "text")
     .option("--include-user", "include user-level instruction files", false)
     .option("--codex-home <path>", "Codex home used with --include-user")
     .option("--claude-home <path>", "Claude home used with --include-user")
+    .option("--gemini-home <path>", "Gemini home used with --include-user")
     .option("--fallback <filename>", "Codex fallback filename; repeatable", collect, [])
     .option("--exclude <glob>", "additional Claude exclusion glob; repeatable", collect, [])
+    .option(
+      "--context-file <filename>",
+      "effective Gemini context filename; repeatable",
+      collect,
+      [],
+    )
     .option("--max-bytes <bytes>", "Codex project instruction byte limit", parseNonNegativeInteger, 32768)
     .action(async (target: string, rawOptions: ExplainOptions) => {
-      if (rawOptions.client !== "codex" && rawOptions.client !== "claude") {
+      if (
+        rawOptions.client !== "codex" &&
+        rawOptions.client !== "claude" &&
+        rawOptions.client !== "gemini"
+      ) {
         throw new InputError(
-          `profile is not implemented yet: ${rawOptions.client} (available: codex, claude)`,
+          `profile is not implemented yet: ${rawOptions.client} (available: codex, claude, gemini)`,
         );
       }
       if (rawOptions.format !== "text" && rawOptions.format !== "json") {
@@ -64,29 +78,44 @@ export function buildProgram(): Command {
       }
 
       const root = rawOptions.root ?? (await findGitRoot(rawOptions.cwd));
-      const trace =
-        rawOptions.client === "codex"
-          ? await traceCodex({
-              root,
-              cwd: rawOptions.cwd,
-              target,
-              includeUser: rawOptions.includeUser,
-              maxBytes: rawOptions.maxBytes,
-              ...(rawOptions.codexHome === undefined ? {} : { codexHome: rawOptions.codexHome }),
-              ...(rawOptions.fallback === undefined
-                ? {}
-                : { fallbackFilenames: rawOptions.fallback }),
-            })
-          : await traceClaude({
-              root,
-              cwd: rawOptions.cwd,
-              target,
-              includeUser: rawOptions.includeUser,
-              ...(rawOptions.claudeHome === undefined
-                ? {}
-                : { claudeHome: rawOptions.claudeHome }),
-              ...(rawOptions.exclude === undefined ? {} : { excludes: rawOptions.exclude }),
-            });
+      let trace;
+      if (rawOptions.client === "codex") {
+        trace = await traceCodex({
+          root,
+          cwd: rawOptions.cwd,
+          target,
+          includeUser: rawOptions.includeUser,
+          maxBytes: rawOptions.maxBytes,
+          ...(rawOptions.codexHome === undefined ? {} : { codexHome: rawOptions.codexHome }),
+          ...(rawOptions.fallback === undefined
+            ? {}
+            : { fallbackFilenames: rawOptions.fallback }),
+        });
+      } else if (rawOptions.client === "claude") {
+        trace = await traceClaude({
+          root,
+          cwd: rawOptions.cwd,
+          target,
+          includeUser: rawOptions.includeUser,
+          ...(rawOptions.claudeHome === undefined
+            ? {}
+            : { claudeHome: rawOptions.claudeHome }),
+          ...(rawOptions.exclude === undefined ? {} : { excludes: rawOptions.exclude }),
+        });
+      } else {
+        trace = await traceGemini({
+          root,
+          cwd: rawOptions.cwd,
+          target,
+          includeUser: rawOptions.includeUser,
+          ...(rawOptions.geminiHome === undefined
+            ? {}
+            : { geminiHome: rawOptions.geminiHome }),
+          ...(rawOptions.contextFile === undefined
+            ? {}
+            : { contextFilenames: rawOptions.contextFile }),
+        });
+      }
       process.stdout.write(
         rawOptions.format === "json" ? `${JSON.stringify(trace, null, 2)}\n` : `${renderText(trace)}\n`,
       );
@@ -99,7 +128,7 @@ export function buildProgram(): Command {
     .command("profiles")
     .description("List implemented client profiles and their primary sources.")
     .action(() => {
-      for (const profile of [CODEX_PROFILE, CLAUDE_PROFILE]) {
+      for (const profile of [CODEX_PROFILE, CLAUDE_PROFILE, GEMINI_PROFILE]) {
         process.stdout.write(
           `${profile.id}\t${profile.status}\tverified ${profile.verifiedOn}\t${profile.sources[0]?.url}\n`,
         );
